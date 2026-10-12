@@ -137,6 +137,12 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
   // O `start` debita a entrada; o `settled` acerta as contas. Os dois trazem o
   // estado novo pra carteira nunca ficar atrás do servidor.
+  // Adversário foi pra outro app: avisa quem ficou pra não desistir da mesa.
+  useEffect(() => net.on('ausente', (a: { segundos?: number; voltou?: boolean }) => {
+    showNotification(a.voltou ? 'O adversário voltou pra partida'
+      : `O adversário saiu do app. Se não voltar em ${a.segundos}s, a vitória é sua`);
+  }), [showNotification]);
+
   useEffect(() => net.on('start', (s: { state?: ServerState }) => {
     if (s?.state) setEstado(s.state);
   }), []);

@@ -147,6 +147,7 @@ export class Sinuca {
     }
     this.waitingSnapshot = false;
     this.pendingSnapshot = null;
+    this.esperandoEco = false;
     this.myPotted = 0;
     this.resetRack(online ? mulberry32(seed) : Math.random);
     this.state.breakDone = false;
@@ -203,7 +204,10 @@ export class Sinuca {
       cue: { x: this.cueBall.position.x, z: this.cueBall.position.z },
     };
     // Online o servidor devolve a tacada pros dois: mesmo caminho, mesmo timing.
-    if (this.net) this.net.emit('shot', shot);
+    // Até o eco chegar nada se mexe, e sem essa trava o fim da tacada era
+    // declarado ali (bolas paradas): com ping acima de ~0,2s a tacada saía
+    // vazia aqui e o adversário via as bolas voltarem pro lugar.
+    if (this.net) { this.esperandoEco = true; this.net.emit('shot', shot); }
     else this.applyShot(shot);
   }
 
@@ -213,6 +217,7 @@ export class Sinuca {
     // antes, então o beginTurn dele dispara antes do meu. Adianta o meu em vez
     // de deixar a tacada cair num turno que ainda não começou.
     if (this.turnTimer) { clearTimeout(this.turnTimer); this.beginTurn(false); }
+    this.esperandoEco = false;
     this.angle = shot.angle;
     this.spinX = shot.spinX;
     this.spinY = shot.spinY;
@@ -593,7 +598,7 @@ export class Sinuca {
       if (this.pendingShot.delay <= 0) this.executeShot();
     }
     if (this.phase === State.SHOOTING || this.world.anyMoving()) this.world.step(dt * RITMO);
-    if (this.phase === State.SHOOTING && !this.pendingShot) {
+    if (this.phase === State.SHOOTING && !this.pendingShot && !this.esperandoEco) {
       const result = this.turns.update(dt, this.world);
       if (result) this.onShotResolved(result);
     }

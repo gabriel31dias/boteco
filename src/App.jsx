@@ -629,6 +629,7 @@ function useHashPage() {
 
 /** Na partida o site sai do caminho: cada jogo tem sua tela, o servidor diz qual (como no sinuca2). */
 function Partida({ match }) {
+  const { notification } = useApp()
   // A mesa ocupa a tela toda: sem a calha da barra de rolagem do site por baixo.
   useEffect(() => {
     const html = document.documentElement, h = html.style
@@ -650,7 +651,8 @@ function Partida({ match }) {
     : match.game === 'tanque' ? <TanqueScreen />
     : match.game === 'ratos' ? <RatosScreen />
     : <GameScreen />
-  return <div className="bt-partida">{tela}<Reacoes key={match.matchId} match={match} /><ChatAvisos /></div>
+  // Avisos da mesa ("o adversário saiu do app…") também durante a partida
+  return <div className="bt-partida">{tela}<Reacoes key={match.matchId} match={match} /><ChatAvisos />{notification && <div className="bt-toast" role="status">{notification}</div>}</div>
 }
 
 export default function App() {

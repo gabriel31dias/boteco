@@ -37,7 +37,7 @@ export const net = {
     socket = io({ path: `/ws/${jogo}`, auth: { token }, transports: ['websocket', 'polling'] });
     // Lista fixa: evento que não estiver aqui nunca chega em quem escuta.
     for (const ev of ['joined', 'denied', 'proposta', 'convidado', 'recusada',
-      'start', 'shot', 'resolved', 'estado', 'settled', 'left', 'mesa', 'reacao']) {
+      'start', 'shot', 'resolved', 'estado', 'settled', 'left', 'mesa', 'reacao', 'ausente']) {
       socket.on(ev, (p) => entregar(ev, p));
     }
     socket.on('connect_error', (e) => entregar('erro', e.message));
@@ -75,3 +75,12 @@ export const net = {
   jogada(acao) { socket?.emit('jogada', acao); },
   leave() { socket?.emit('leave'); },
 };
+
+// Sumiu da tela (outro app, tela bloqueada): o servidor dá um tempo e, se não
+// voltar, é W.O. Fechar a página é sair na hora — sem isso a conexão ficava
+// pendurada e quem saiu ainda podia ganhar no relógio de quem ficou.
+if (typeof document !== 'undefined') {
+  document.addEventListener('visibilitychange', () =>
+    socket?.emit('presenca', document.visibilityState === 'visible'));
+  addEventListener('pagehide', (e) => { if (!e.persisted) net.leave(); });
+}
