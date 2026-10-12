@@ -345,13 +345,17 @@ body:has(.tanque) .reacoes-chegadas { bottom: 64px; left: 112px; }
   body:has(.tanque) .reacoes-chegadas { left: 64px; top: 112px; bottom: auto; }
 }
 
-/* Ratos em Guerra: reações no mesmo canto do tanque (ao lado de sair/som do canvas) */
-body:has(.ratos) .reacoes-caixa, body:has(.capivara) .reacoes-caixa, body:has(.psicopatas) .reacoes-caixa, body:has(.galinhas) .reacoes-caixa { left: 112px; bottom: 12px; flex-direction: row; }
-body:has(.ratos) .reacoes-chegadas, body:has(.capivara) .reacoes-chegadas, body:has(.psicopatas) .reacoes-chegadas, body:has(.galinhas) .reacoes-chegadas { bottom: 64px; left: 112px; }
+/* Ratos, capivara, psicopatas e galinhas: 👥 e 💬 empilhados na borda esquerda, logo acima do ✕/🔊
+   do canvas (que ficam acima do joystick, ver `botoes()` em jogo.js). Mesma
+   conta do canvas: o ✕ fica a 0,24·lado + 96px do pé da tela (lado = altura,
+   deitado). Celular em pé: o jogo é desenhado girado, então vão pro topo,
+   na mesma distância da borda esquerda. */
+body:has(.ratos) .reacoes-caixa, body:has(.capivara) .reacoes-caixa, body:has(.psicopatas) .reacoes-caixa, body:has(.galinhas) .reacoes-caixa { left: 8px; top: auto; bottom: calc(24dvh + 104px); flex-direction: column; }
+body:has(.ratos) .reacoes-chegadas, body:has(.capivara) .reacoes-chegadas, body:has(.psicopatas) .reacoes-chegadas, body:has(.galinhas) .reacoes-chegadas { left: 56px; top: auto; bottom: calc(24dvh + 104px); }
 @media (orientation: portrait) {
-  body:has(.ratos) .reacoes-caixa, body:has(.psicopatas) .reacoes-caixa, body:has(.galinhas) .reacoes-caixa { left: 12px; top: 112px; bottom: auto; flex-direction: column; }
-  body:has(.ratos) .reacoes-caixa > button, body:has(.psicopatas) .reacoes-caixa > button, body:has(.galinhas) .reacoes-caixa > button { rotate: 90deg; }
-  body:has(.ratos) .reacoes-chegadas, body:has(.psicopatas) .reacoes-chegadas, body:has(.galinhas) .reacoes-chegadas { left: 64px; top: 112px; bottom: auto; }
+  body:has(.ratos) .reacoes-caixa, body:has(.capivara) .reacoes-caixa, body:has(.psicopatas) .reacoes-caixa, body:has(.galinhas) .reacoes-caixa { left: calc(24dvw + 104px); top: 8px; bottom: auto; flex-direction: row-reverse; }
+  body:has(.ratos) .reacoes-caixa > button, body:has(.capivara) .reacoes-caixa > button, body:has(.psicopatas) .reacoes-caixa > button, body:has(.galinhas) .reacoes-caixa > button { rotate: 90deg; }
+  body:has(.ratos) .reacoes-chegadas, body:has(.capivara) .reacoes-chegadas, body:has(.psicopatas) .reacoes-chegadas, body:has(.galinhas) .reacoes-chegadas { left: calc(24dvw + 104px); top: 56px; bottom: auto; }
 }
 /* nome de rato é comprido: chips em 2 linhas */
 .lb-cores { flex-wrap: wrap; }

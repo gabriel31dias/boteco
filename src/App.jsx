@@ -30,6 +30,8 @@ import Lobby from './Lobby.jsx'
 import { idade } from './cpf.js'
 import { api } from './api.js'
 import { ConexaoPerdida } from './app/components/ConexaoPerdida'
+import { net } from './net.js'
+import { ficarEmPe } from './app/telaCheia'
 
 const a = import.meta.glob('./assets/*', { eager: true, import: 'default' })
 const img = (n) => a[`./assets/${n}`]
@@ -724,17 +726,22 @@ function useHashPage() {
 /** Na partida o site sai do caminho: cada jogo tem sua tela, o servidor diz qual (como no sinuca2). */
 function Partida({ match }) {
   const { notification } = useApp()
+  // Acabou (o resultado chegou): a janela de "Você venceu" é lida em pé, em
+  // todos os jogos. A mesa para de girar e o celular vira pra retrato.
+  const [acabou, setAcabou] = useState(false)
+  useEffect(() => { setAcabou(false); return net.on('settled', () => setAcabou(true)) }, [match.matchId])
+  useEffect(() => { if (acabou) ficarEmPe() }, [acabou])
   // A mesa ocupa a tela toda: sem a calha da barra de rolagem do site por baixo.
   useEffect(() => {
     const html = document.documentElement, h = html.style
     h.scrollbarGutter = 'auto'; h.overflow = 'hidden'
     // Sinuca e pôquer no celular em pé: giram a partida pra ficar igual ao desktop (ver gira.js).
     // O pôquer é DOM: o navegador desfaz o giro do toque sozinho, só a sinuca (canvas) precisa do gira.js.
-    const girar = () => html.classList.toggle('mesa-girada', ['sinuca', 'poker', 'buraco', 'buraco-duplas', 'cacheta'].includes(match.game) && innerWidth < innerHeight)
+    const girar = () => html.classList.toggle('mesa-girada', !acabou && ['sinuca', 'poker', 'buraco', 'buraco-duplas', 'cacheta'].includes(match.game) && innerWidth < innerHeight)
     girar()
     addEventListener('resize', girar)
     return () => { removeEventListener('resize', girar); html.classList.remove('mesa-girada'); h.scrollbarGutter = ''; h.overflow = '' }
-  }, [match.game])
+  }, [match.game, acabou])
   const tela = match.game === 'velha' ? <VelhaScreen />
     : match.game === 'domino' || match.game === 'domino-duplas' ? <DominoScreen />
     : match.game === 'truco' || match.game === 'truco-duplas' ? <TrucoScreen />

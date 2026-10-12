@@ -11,6 +11,17 @@ export async function entrarTelaCheia() {
   try { await document.documentElement.requestFullscreen({ navigationUI: 'hide' }); } catch { return; }
 }
 
+/**
+ * Fim da partida: o resultado ("Você venceu") é lido em pé. Com tela cheia o
+ * Android aceita travar em retrato e o celular vira sozinho; sem ela (iOS) não
+ * há como forçar. Quem solta a trava é o `sairTelaCheia` ao deixar a mesa.
+ */
+export function ficarEmPe() {
+  if (!noCelular()) return;
+  try { (screen.orientation as any)?.lock?.('portrait')?.catch?.(() => {}); } catch { /* sem trava */ }
+}
+
 export function sairTelaCheia() {
+  try { (screen.orientation as any)?.unlock?.(); } catch { /* sem trava */ }
   if (document.fullscreenElement) document.exitFullscreen().catch(() => {});
 }
