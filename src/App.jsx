@@ -24,6 +24,7 @@ import capaVelha from './app/assets/jogo-velha.png'
 import Lobby from './Lobby.jsx'
 import { idade } from './cpf.js'
 import { api } from './api.js'
+import { ConexaoPerdida } from './app/components/ConexaoPerdida'
 
 const a = import.meta.glob('./assets/*', { eager: true, import: 'default' })
 const img = (n) => a[`./assets/${n}`]
@@ -656,7 +657,8 @@ function Partida({ match }) {
     : match.game === 'capivara' ? <CapivaraScreen />
     : <GameScreen />
   // Avisos da mesa ("o adversário saiu do app…") também durante a partida
-  return <div className="bt-partida">{tela}<Reacoes key={match.matchId} match={match} /><ChatAvisos />{notification && <div className="bt-toast" role="status">{notification}</div>}</div>
+  return <div className="bt-partida">{tela}<Reacoes key={match.matchId} match={match} /><ChatAvisos />{notification && <div className="bt-toast" role="status">{notification}</div>}
+    <ConexaoPerdida matchId={match.matchId} /></div>
 }
 
 export default function App() {

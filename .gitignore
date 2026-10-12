@@ -4,3 +4,4 @@ dist/
 data/
 certs/
 .playwright-mcp/
+admin/

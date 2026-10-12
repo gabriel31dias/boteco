@@ -39,7 +39,7 @@ const pronto = (im) => im && im.complete && im.naturalWidth > 0;
 export class Jogo {
   /**
    * @param {HTMLCanvasElement} canvas
-   * @param {{ assento: number, jogadores: {name: string, avatar?: string|null}[], onEntrada: (e: object) => void, onSair: () => void }} op
+   * @param {{ assento: number, jogadores: {name: string, avatar?: string|null}[], onEntrada: (e: object) => void, onSair: () => void, onCaiu?: () => void }} op
    */
   constructor(canvas, op) {
     this.canvas = canvas;
@@ -74,6 +74,8 @@ export class Jogo {
     this.corr = { x: 0, y: 0 }; // correção visual que vai sumindo
     this.ultimoQuadro = null;
     this.toque = matchMedia('(pointer: coarse)').matches;
+    this.encerrado = false;   // acabou (ou a conexão caiu): para de mandar comando e de prever
+    this.chegou = performance.now();
 
     this.ligar();
     this.redimensionar();
@@ -92,6 +94,9 @@ export class Jogo {
   // ------------------------------------------------------------ estado
 
   aplicar(e) {
+    if (this.encerrado) return;
+    this.chegou = performance.now();
+    this.travou = false;
     this.reconciliar(e);
     const agora = performance.now();
     // O pacote que chegou mais rápido é o que mais se aproxima do relógio do
@@ -103,12 +108,26 @@ export class Jogo {
     for (const ev of e.ev ?? []) {
       if (ev.id > this.vistos) { this.vistos = ev.id; this.eventosPendentes.push({ ...ev, t: e.agora }); }
     }
+    if (e.fim) this.encerrar();
     if (e.rodada !== this.rodadaVista) {
       this.rodadaVista = e.rodada;
       this.crateras = [];
       this.efeitos = [];
       this.particulas = [];
     }
+  }
+
+  /**
+   * Fim da partida pra mim: solta os controles e congela o meu tanque. Sem
+   * isso, quem perdia o último estado (conexão caiu) seguia andando sozinho.
+   */
+  encerrar() {
+    if (this.encerrado) return;
+    this.encerrado = true;
+    this.toques.clear(); this.teclas.clear();
+    this.mouseFogo = false;
+    this.pendentes = [];
+    this.andando = false;
   }
 
   /** Mundo mínimo pra `mover`: os obstáculos do quadro e o outro tanque onde o servidor disse. */
@@ -343,6 +362,7 @@ export class Jogo {
 
   /** O que eu quero agora; manda pro servidor quando muda (e de 250 em 250ms). */
   enviarEntrada(estado) {
+    if (this.encerrado) return;
     let mx = 0, my = 0, fogo = false;
     const k = this.teclas;
     if (k.has('a') || k.has('arrowleft')) mx -= 1;
@@ -431,6 +451,8 @@ export class Jogo {
     this.ultimoDesenho = agora;
     const tServ = this.desvio == null ? 0 : agora + this.desvio - ATRASO;
     const est = this.interpolar(tServ);
+    // no meio do jogo o servidor manda estado ~30x por segundo: 3s calado é conexão com problema
+    if (!this.encerrado && !this.travou && this.ultimo?.fase === 'jogo' && agora - this.chegou > 3000) { this.travou = true; this.op.onCaiu?.(); }
     // o meu tanque é desenhado onde a previsão diz, não 90ms no passado
     if (est && this.pred) {
       this.corr.x *= 0.82; this.corr.y *= 0.82;

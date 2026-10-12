@@ -29,7 +29,9 @@ export const TanqueScreen: React.FC = () => {
       jogadores: match.players,
       onEntrada: (e: object) => net.jogada(e),
       onSair: () => { net.leave(); setMatch(null); },
+      onCaiu: () => net.instavel(),
     });
+    const offCaiu = net.on('caiu', () => jogo.encerrar());
     const offEstado = net.on('estado', (e: { fim: Fim | null }) => {
       jogo.aplicar(e);
       if (e.fim) setFim(e.fim);
@@ -44,7 +46,7 @@ export const TanqueScreen: React.FC = () => {
     const toque = () => entrarTelaCheia();
     canvas.addEventListener('pointerdown', toque, { once: true });
     return () => {
-      offEstado(); offSettled(); offLeft();
+      offEstado(); offSettled(); offLeft(); offCaiu();
       canvas.removeEventListener('pointerdown', toque);
       jogo.destroy();
       sairTelaCheia();

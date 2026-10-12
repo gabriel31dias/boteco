@@ -28,6 +28,10 @@ import * as capivara from './jogos/capivara.js';
 
 /** Quanto tempo o app pode ficar fora da tela, em partida, antes do W.O. */
 export const AUSENCIA_MS = Number(process.env.AUSENCIA_MS) || 30_000;
+/** Quanto cada jogador tem pra responder "estou aqui" antes da partida abrir. */
+export const CONFERE_MS = Number(process.env.CONFERE_MS) || 3_000;
+/** Mesmo valor do `pingInterval` do socket.io (lá embaixo): cliente vivo manda pacote pelo menos nesse ritmo. */
+const PING_MS = 10_000;
 /** Mesa cheia em jogo de escolher personagem: tempo pro último escolher antes de abrir. */
 const ESCOLHA = Number(process.env.ESCOLHA_MS ?? 5000);
 
@@ -289,6 +293,10 @@ export function attach(io, jogoId = JOGO_PADRAO) {
 
   io.on('connection', (socket) => {
     socket.data.sala = null;
+    // Último sinal de vida (qualquer pacote, inclusive o pong do ping): é por
+    // ele que se confere cliente antigo, que não sabe responder 'vivo'.
+    socket.data.visto = Date.now();
+    socket.conn.on('packet', () => { socket.data.visto = Date.now(); });
 
     // Boundary: exceção em handler de socket derruba o processo inteiro (o
     // socket.io não isola). Com um jogo por processo isso já não contamina o
@@ -324,7 +332,7 @@ export function attach(io, jogoId = JOGO_PADRAO) {
       if (alvo && alvo.players.some((p) => p.user.id === user.id)) {
         return socket.emit('denied', 'Você já está nessa sala');
       }
-      if (alvo && (alvo.players.length >= MAX || alvo.proposta || alvo.matchId)) {
+      if (alvo && (alvo.players.length >= MAX || alvo.proposta || alvo.matchId || alvo.conferindo)) {
         return socket.emit('denied', 'Sala cheia');
       }
 
@@ -458,8 +466,86 @@ export function attach(io, jogoId = JOGO_PADRAO) {
       comecar(alvo, socket, code);
     }
 
-    /** Debita todos e manda todos pra mesa. */
+    /**
+     * Ninguém joga com fantasma: antes de debitar a entrada, cada um tem que
+     * responder agora e estar com o app na tela. Conexão morta (celular sem
+     * sinal) só cai no ping, até ~30s depois; app em segundo plano mantém a
+     * conexão aberta. Os dois entrariam na partida sem jogar.
+     * Devolve quem não passou.
+     */
+    async function conferirVivos(alvo) {
+      const ok = await Promise.all(alvo.players.map(async ({ socket: s }) => {
+        if (!s?.connected) return false;
+        // Cliente antigo (página aberta antes desta versão) não sabe responder:
+        // vale se mandou pacote no último ciclo de ping.
+        if (!s.handshake.auth?.vivo) return Date.now() - (s.data.visto ?? 0) < PING_MS + CONFERE_MS;
+        try {
+          const r = await s.timeout(CONFERE_MS).emitWithAck('vivo');
+          return r?.visivel !== false;
+        } catch { return false; }
+      }));
+      return alvo.players.filter((_, i) => !ok[i]);
+    }
+
+    /** Confere a presença de todos e só então abre a partida. */
     function comecar(alvo, socket, code) {
+      if (alvo.conferindo) return;
+      alvo.conferindo = true;
+      const antes = [...alvo.players];
+      conferirVivos(alvo).then((fantasmas) => {
+        alvo.conferindo = false;
+        // Nesse meio-tempo a mesa fechou ou alguém saiu: quem mexeu já cuidou dela.
+        if (rooms.get(alvo.code) !== alvo || alvo.matchId) return;
+        if (alvo.players.length !== antes.length || alvo.players.some((p, i) => p !== antes[i])) {
+          voltarAEsperar(alvo, code);
+          return;
+        }
+        if (fantasmas.length) { tirarFantasmas(alvo, fantasmas, code); return; }
+        abrirPartida(alvo, socket, code);
+      }).catch((e) => {
+        alvo.conferindo = false;
+        console.error(`[${jogoId}] erro conferindo os jogadores:`, e);
+      });
+    }
+
+    /** Quem não respondeu sai da mesa antes de pagar nada; quem ficou espera outro. */
+    function tirarFantasmas(alvo, fantasmas, code) {
+      console.log(`[${jogoId}] mesa ${alvo.code}: ${fantasmas.length} fora do ar antes de abrir (${fantasmas.map((p) => p.user.id).join(', ')})`);
+      for (const p of fantasmas) {
+        if (!p.socket) continue;
+        p.socket.emit('denied', 'Você estava fora do app quando a partida ia começar. Entre de novo.');
+        p.socket.data.sala = null;
+        p.socket.leave(alvo.code);
+      }
+      alvo.players = alvo.players.filter((p) => !fantasmas.includes(p));
+      if (!alvo.players.length) { fechar(alvo); return; }
+      if (fantasmas.some((p) => p.socket === alvo.dono)) alvo.dono = alvo.players[0].socket;
+      for (const p of alvo.players) p.socket?.emit('ausente', { caiuAntes: true });
+      voltarAEsperar(alvo, code);
+    }
+
+    /** A mesa não abriu (alguém sumiu ou saiu): volta a esperar gente, ou abre com quem tem. */
+    function voltarAEsperar(alvo, code) {
+      alvo.proposta = false;
+      alvo.aceitos = new Set();
+      if (jogo.cores) { alvo.agendar?.(); avisarMesa(alvo); }
+      else if (alvo.players.length >= MIN && MAX > MIN) { avisarMesa(alvo); comecar(alvo, alvo.players[alvo.players.length - 1].socket, code); return; }
+      else avisarMesa(alvo);
+      if (code) return;
+      // Fila pública: a mesa volta a ser a da vez. Se outra já ocupou o lugar,
+      // quem sobrou procura de novo (ficar numa mesa que ninguém acha é pior).
+      const daVez = rooms.get(filas.get(alvo.type));
+      if (!daVez || daVez === alvo) { filas.set(alvo.type, alvo.code); return; }
+      for (const p of alvo.players) {
+        p.socket?.emit('denied', 'O adversário caiu antes de começar. Procure outra partida.');
+        if (p.socket) { p.socket.data.sala = null; p.socket.leave(alvo.code); }
+      }
+      alvo.players = [];
+      fechar(alvo);
+    }
+
+    /** Debita todos e manda todos pra mesa. */
+    function abrirPartida(alvo, socket, code) {
       alvo.proposta = false;
       // Daqui em diante índice = assento. Duplas: times intercalados, parceiro
       // de frente. Sem duplas fica a ordem de chegada.
@@ -682,6 +768,10 @@ export function attach(io, jogoId = JOGO_PADRAO) {
         avisar({ assento: i, voltou: true });
       }
     });
+    // O app pergunta de tempos em tempos (e quando a internet volta) se ainda
+    // está na partida. Caiu e voltou: o servidor já deu W.O. e este socket é
+    // outro, então a resposta é não — e a tela sai da mesa congelada.
+    on('conferir', (cb) => { if (typeof cb === 'function') cb({ naPartida: !!socket.data.sala?.matchId }); });
     on('leave', () => sair(socket, 'saiu'));
     on('disconnect', () => sair(socket, 'desconectou'));
   });
@@ -711,7 +801,7 @@ export function listen(port, jogoId = process.env.JOGO || JOGO_PADRAO) {
   // fantasma na mesa; assim cai em no máximo ~30s.
   const io = new Server(http, {
     path: caminhoDe(jogo.id),
-    pingInterval: 10_000,
+    pingInterval: PING_MS,
     pingTimeout: 20_000,
     ...(ORIGENS.length ? { cors: { origin: ORIGENS, methods: ['GET', 'POST'] } } : {}),
   });

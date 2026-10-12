@@ -86,7 +86,7 @@ const POW = ['POW!', 'BAM!', 'PLAFT!', 'TUM!'];
 export class Jogo {
   /**
    * @param {HTMLCanvasElement} canvas
-   * @param {{ assento: number, jogadores: {name: string, avatar?: string|null, cor?: string}[], onEntrada: (e: object) => void, onSair: () => void }} op
+   * @param {{ assento: number, jogadores: {name: string, avatar?: string|null, cor?: string}[], onEntrada: (e: object) => void, onSair: () => void, onCaiu?: () => void }} op
    */
   constructor(canvas, op) {
     this.canvas = canvas;
@@ -124,6 +124,10 @@ export class Jogo {
     this.toques = new Map();
     this.mira = op.assento % 2 ? Math.PI : 0;
     this.toque = matchMedia('(pointer: coarse)').matches;
+    this.encerrado = false;   // acabou (ou a conexão caiu): para de mandar comando e de prever
+    this.chegou = performance.now();
+    this.mirou = false;   // já mirou nesta partida
+    try { this.mirasAntes = Number(localStorage.getItem('ratos-miras')) || 0; } catch { this.mirasAntes = 0; }
 
     // previsão
     this.cmdSeq = 0;
@@ -155,6 +159,9 @@ export class Jogo {
   // ------------------------------------------------------------ estado
 
   aplicar(e) {
+    if (this.encerrado) return;
+    this.chegou = performance.now();
+    this.travou = false;
     this.reconciliar(e);
     const agora = performance.now();
     const d = e.agora - agora;
@@ -164,6 +171,20 @@ export class Jogo {
     for (const ev of e.ev ?? []) {
       if (ev.id > this.vistos) { this.vistos = ev.id; this.eventosPendentes.push({ ...ev, t: e.agora }); }
     }
+    if (e.fim) this.encerrar();
+  }
+
+  /**
+   * Fim da partida pra mim: solta os controles e congela o meu rato. Sem isso,
+   * quem perdia o último estado (conexão caiu no fim) seguia andando sozinho
+   * num jogo que o servidor já tinha fechado.
+   */
+  encerrar() {
+    if (this.encerrado) return;
+    this.encerrado = true;
+    this.toques.clear(); this.teclas.clear();
+    this.mouseFogo = false; this.puloPendente = false; this.bombaPendente = false;
+    this.pendentes = [];
   }
 
   /** O que `mover` precisa: cores, ratos (só o meu completo) e barris. */
@@ -441,20 +462,27 @@ export class Jogo {
   paraMundo(v) { return { x: (v.x - this.ox) / this.esc, y: (v.y - this.oy) / this.esc + this.camY }; }
 
   botoes() {
-    const s = Math.min(this.vw, this.vh);
+    const s = Math.min(this.vw, this.vh), m = 12;
+    if (!this.toque) return { sair: { x: 14, y: this.vh - 52, w: 40, h: 40 }, mudo: { x: 62, y: this.vh - 52, w: 40, h: 40 } };
+    // no toque: tudo pequeno e encostado nos cantos, pra não tampar o jogo
+    const joy = { x: m + s * 0.12, y: this.vh - m - s * 0.12, r: s * 0.12 };
+    const fogo = { x: this.vw - m - s * 0.11, y: this.vh - m - s * 0.11, r: s * 0.11 };
+    const pr = s * 0.075, br = s * 0.06;
     return {
-      sair: { x: 14, y: this.vh - 52, w: 40, h: 40 },
-      mudo: { x: 62, y: this.vh - 52, w: 40, h: 40 },
-      joy: { x: s * 0.2, y: this.vh - s * 0.24, r: s * 0.15 },
-      fogo: { x: this.vw - s * 0.18, y: this.vh - s * 0.22, r: s * 0.13 },
-      pulo: { x: this.vw - s * 0.43, y: this.vh - s * 0.14, r: s * 0.085 },
-      bomba: { x: this.vw - s * 0.36, y: this.vh - s * 0.38, r: s * 0.07 },
+      // ✕ e 🔊 empilhados na borda esquerda, acima do joystick
+      sair: { x: 8, y: joy.y - joy.r - 84, w: 34, h: 34 },
+      mudo: { x: 8, y: joy.y - joy.r - 44, w: 34, h: 34 },
+      joy,
+      fogo,
+      pulo: { x: fogo.x - fogo.r - 12 - pr, y: this.vh - m - pr, r: pr },
+      bomba: { x: fogo.x, y: fogo.y - fogo.r - 12 - br, r: br },
     };
   }
 
   ponteiroDesce(e) {
     destravar();
     const v = this.paraVirtual(e.clientX, e.clientY);
+    if (e.pointerType !== 'mouse') this.toque = true;   // antes de `botoes()`: o layout muda no toque
     const b = this.botoes();
     const dentro = (r) => v.x >= r.x && v.x <= r.x + r.w && v.y >= r.y && v.y <= r.y + r.h;
     if (dentro(b.sair)) { if (confirm('Sair da partida? Quem sai no meio perde a entrada.')) this.op.onSair(); return; }
@@ -467,17 +495,33 @@ export class Jogo {
     }
     e.preventDefault();
     this.toque = true;
-    if (Math.hypot(v.x - b.bomba.x, v.y - b.bomba.y) < b.bomba.r * 1.25) {
+    if (Math.hypot(v.x - b.bomba.x, v.y - b.bomba.y) < b.bomba.r * 1.45) {
       this.bombaPendente = true;
       this.toques.set(e.pointerId, { tipo: 'bomba', x0: v.x, y0: v.y, x: v.x, y: v.y });
       return;
     }
-    if (Math.hypot(v.x - b.pulo.x, v.y - b.pulo.y) < b.pulo.r * 1.25) {
+    if (Math.hypot(v.x - b.pulo.x, v.y - b.pulo.y) < b.pulo.r * 1.45) {
       this.puloPendente = true;
       this.toques.set(e.pointerId, { tipo: 'pulo', x0: v.x, y0: v.y, x: v.x, y: v.y });
       return;
     }
-    this.toques.set(e.pointerId, { tipo: v.x < this.vw / 2 ? 'mover' : 'mirar', x0: v.x, y0: v.y, x: v.x, y: v.y, pulou: false });
+    if (v.x < this.vw / 2) {
+      this.toques.set(e.pointerId, { tipo: 'mover', x0: v.x, y0: v.y, x: v.x, y: v.y, pulou: false });
+      return;
+    }
+    // no botão de tiro: analógico preso no centro do botão (já mira no toque).
+    // fora dele, na metade direita: mira no ponto tocado do mapa.
+    const noFogo = Math.hypot(v.x - b.fogo.x, v.y - b.fogo.y) < b.fogo.r * 1.6;
+    this.toques.set(e.pointerId, noFogo
+      ? { tipo: 'mirar', x0: b.fogo.x, y0: b.fogo.y, x: v.x, y: v.y }
+      : { tipo: 'apontar', x0: v.x, y0: v.y, x: v.x, y: v.y });
+  }
+
+  /** A dica de como mirar some depois que a pessoa mira de verdade umas vezes (fica salvo no aparelho). */
+  aprendeuMirar() {
+    if (this.mirou) return;
+    this.mirou = true;
+    try { localStorage.setItem('ratos-miras', String(this.mirasAntes + 1)); } catch { /* sem storage */ }
   }
 
   ponteiroMove(e) {
@@ -488,7 +532,7 @@ export class Jogo {
     t.x = v.x; t.y = v.y;
     // joystick pra cima pula (uma vez por subida)
     if (t.tipo === 'mover') {
-      const r = this.botoes().joy.r;
+      const r = this.botoes().joy?.r ?? 1;
       if (!t.pulou && t.y0 - t.y > r * 0.55) { t.pulou = true; this.puloPendente = true; }
       if (t.y0 - t.y < r * 0.3) t.pulou = false;
     }
@@ -500,6 +544,7 @@ export class Jogo {
   }
 
   enviarEntrada(est) {
+    if (this.encerrado) return;
     let mx = 0, fogo = false, desce = false;
     const k = this.teclas;
     if (k.has('a') || k.has('arrowleft')) mx -= 1;
@@ -509,7 +554,7 @@ export class Jogo {
     const meu = est?.ratos[this.eu];
     this.mouse = this.mouseV ? this.paraMundo(this.mouseV) : null;   // a câmera anda: converte toda vez
     if (meu && this.mouse && !this.toque) this.mira = Math.atan2(this.mouse.y - (meu.y - 34), this.mouse.x - meu.x);
-    const r = this.botoes().joy.r;
+    const bt = this.botoes(), r = bt.joy?.r ?? 1;
     let mirando = false;
     for (const t of this.toques.values()) {
       const dx = t.x - t.x0, dy = t.y - t.y0, d = Math.hypot(dx, dy);
@@ -517,7 +562,11 @@ export class Jogo {
         if (Math.abs(dx) > 8) mx = Math.max(-1, Math.min(1, dx / r));
         if (dy > r * 0.55) desce = true;
       }
-      if (t.tipo === 'mirar') { fogo = true; mirando = true; if (d > 12) this.mira = Math.atan2(dy, dx); }
+      if (t.tipo === 'mirar') { fogo = true; mirando = true; if (d > (bt.fogo?.r ?? 60) * 0.2) { this.mira = Math.atan2(dy, dx); this.aprendeuMirar(); } }
+      if (t.tipo === 'apontar') {
+        fogo = true; mirando = true;
+        if (meu) { const m = this.paraMundo(t); this.mira = Math.atan2(m.y - (meu.y - 34), m.x - meu.x); this.aprendeuMirar(); }
+      }
     }
     // no toque, sem mirar: atira pra onde anda
     if (this.toque && !mirando && mx) this.mira = mx > 0 ? 0 : Math.PI;
@@ -801,12 +850,34 @@ export class Jogo {
     g.lineWidth = 3; g.strokeStyle = 'rgba(0,0,0,.85)'; g.fillStyle = this.tom(i);
     const rotulo = i === this.eu ? 'VOCÊ' : this.nome(i).toUpperCase();
     g.strokeText(rotulo, r.x, by - 5); g.fillText(rotulo, r.x, by - 5);
-    // mira: só a minha, uma linha pontilhada curta
+    // mira: só a minha. Parado, uma linha pontilhada curta; mirando, a linha
+    // da bala até o alcance da arma (a escopeta mostra o leque) e um alvo.
     if (i === this.eu) {
-      g.save(); g.translate(r.x, r.y - k.h * 0.52); g.rotate(r.ang);
-      g.strokeStyle = 'rgba(255,255,255,.5)'; g.setLineDash([5, 7]); g.lineWidth = 2;
-      g.beginPath(); g.moveTo(k.w / 2 + 30, 0); g.lineTo(k.w / 2 + 90, 0); g.stroke(); g.setLineDash([]);
-      g.beginPath(); g.arc(k.w / 2 + 100, 0, 6, 0, Math.PI * 2); g.stroke();
+      const mirando = this.mouseFogo || [...this.toques.values()].some((t) => t.tipo === 'mirar' || t.tipo === 'apontar');
+      const lado = Math.cos(r.ang) >= 0 ? 1 : -1;
+      g.save(); g.translate(r.x + lado * (k.w / 2 + 18), r.y - k.h * 0.52); g.rotate(r.ang);
+      if (mirando) {
+        const alc = Math.min(k.bala * k.vidaBala, 520);
+        const gr = g.createLinearGradient(0, 0, alc, 0);
+        gr.addColorStop(0, 'rgba(255,90,70,.95)'); gr.addColorStop(1, 'rgba(255,90,70,0)');
+        g.strokeStyle = gr; g.lineWidth = 3; g.setLineDash([12, 7]);
+        const raios = k.balas > 1 ? [-k.espalha, 0, k.espalha] : [0];
+        for (const a of raios) {
+          g.beginPath(); g.moveTo(0, 0); g.lineTo(Math.cos(a) * alc, Math.sin(a) * alc); g.stroke();
+        }
+        g.setLineDash([]);
+        const d = Math.min(alc * 0.8, 240);
+        g.strokeStyle = '#fff'; g.lineWidth = 2.5;
+        g.beginPath(); g.arc(d, 0, 11, 0, Math.PI * 2); g.stroke();
+        g.beginPath();
+        for (const [x0, y0, x1, y1] of [[d - 17, 0, d - 6, 0], [d + 6, 0, d + 17, 0], [d, -17, d, -6], [d, 6, d, 17]]) { g.moveTo(x0, y0); g.lineTo(x1, y1); }
+        g.stroke();
+        g.fillStyle = '#ff5a46'; g.beginPath(); g.arc(d, 0, 3, 0, Math.PI * 2); g.fill();
+      } else {
+        g.strokeStyle = 'rgba(255,255,255,.5)'; g.setLineDash([5, 7]); g.lineWidth = 2;
+        g.beginPath(); g.moveTo(12, 0); g.lineTo(72, 0); g.stroke(); g.setLineDash([]);
+        g.beginPath(); g.arc(82, 0, 6, 0, Math.PI * 2); g.stroke();
+      }
       g.restore();
     }
   }
@@ -840,6 +911,8 @@ export class Jogo {
     const tServ = this.desvio == null ? 0 : agora + this.desvio - ATRASO;
     const est = this.interpolar(tServ);
     this.tratarEventos(tServ, est);
+    // no meio do jogo o servidor manda estado ~30x por segundo: 3s calado é conexão com problema
+    if (!this.encerrado && !this.travou && this.ultimo?.fase === 'jogo' && agora - this.chegou > 3000) { this.travou = true; this.op.onCaiu?.(); }
     this.enviarEntrada(est);
     if (est && this.pred && this.predVivo) {
       this.corr.x *= 0.82; this.corr.y *= 0.82;
@@ -1045,7 +1118,10 @@ export class Jogo {
     }
     const e = this.ultimo;
     if (!e) return;
-    const vw = this.vw, n = e.r.length;
+    // tela baixa (celular deitado): placar e relógio menores
+    const zoom = this.vh < 500 ? 0.72 : 1;
+    g.save(); g.scale(zoom, zoom);
+    const vw = this.vw / zoom, n = e.r.length;
     const porLado = Math.ceil(n / 2);
     const w = Math.min(260, (vw - 160) / 2 / porLado - 8), h = 54, y = 8;
     const compacto = w < 190;
@@ -1107,13 +1183,14 @@ export class Jogo {
       g.fillStyle = '#9fe7ff';
       g.fillText(`↑ ${metros} m`, vw / 2, 78);
     }
+    g.restore();
     // quem está fora da tela: seta na borda, na cor dele, com a distância
     for (const [i, o] of e.r.entries()) {
       if (i === this.eu || !o[4] || e.fora?.[i]) continue;
       const sy = (o[1] - 34 - this.camY) * this.esc + this.oy;
       if (sy > 95 && sy < this.vh - 10) continue;
       const cima = sy <= 95;
-      const sx = Math.min(vw - 30, Math.max(30, o[0] * this.esc + this.ox));
+      const sx = Math.min(this.vw - 30, Math.max(30, o[0] * this.esc + this.ox));
       const yy = cima ? 106 : this.vh - 70;
       const dist = Math.round(Math.abs((o[1] - (meuR?.[1] ?? o[1])) / 40));
       g.save(); g.translate(sx, yy);
@@ -1135,9 +1212,9 @@ export class Jogo {
       const wt = g.measureText(f.txt).width + 20;
       g.globalAlpha = Math.min(1, (5000 - (agora - f.ini)) / 600);
       g.fillStyle = 'rgba(0,0,0,.6)';
-      g.beginPath(); g.roundRect(vw - wt - 12, yy - 15, wt, 21, 8); g.fill();
+      g.beginPath(); g.roundRect(this.vw - wt - 12, yy - 15, wt, 21, 8); g.fill();
       g.fillStyle = this.tom(f.de); g.textAlign = 'right';
-      g.fillText(f.txt, vw - 22, yy);
+      g.fillText(f.txt, this.vw - 22, yy);
       g.globalAlpha = 1;
     });
 
@@ -1153,10 +1230,10 @@ export class Jogo {
       faixa = 'VOCÊ VIROU QUEIJO!'; cor = '#ffd23d'; grande = false;
     }
     if (faixa) {
-      const tam = grande ? Math.min(120, this.vh * 0.22) : Math.min(46, vw * 0.045);
+      const tam = grande ? Math.min(120, this.vh * 0.22) : Math.min(46, this.vw * 0.045);
       const pulso = 1 + Math.sin(agora / 90) * 0.04;
       g.save();
-      g.translate(vw / 2, this.vh / 2);
+      g.translate(this.vw / 2, this.vh / 2);
       g.scale(pulso, pulso);
       g.rotate(-0.04);
       g.font = `italic 900 ${tam}px "Barlow Semi Condensed", system-ui, sans-serif`;
@@ -1179,7 +1256,7 @@ export class Jogo {
     for (const [r, txt] of [[b.sair, '✕'], [b.mudo, som.mudo ? '🔇' : '🔊']]) {
       g.fillStyle = 'rgba(14,8,22,.7)';
       g.beginPath(); g.roundRect(r.x, r.y, r.w, r.h, 10); g.fill();
-      g.font = '20px system-ui, sans-serif'; g.textAlign = 'center'; g.textBaseline = 'middle';
+      g.font = `${Math.round(r.w / 2)}px system-ui, sans-serif`; g.textAlign = 'center'; g.textBaseline = 'middle';
       g.fillStyle = '#fff'; g.fillText(txt, r.x + r.w / 2, r.y + r.h / 2 + 1);
       g.textBaseline = 'alphabetic';
     }
@@ -1191,8 +1268,8 @@ export class Jogo {
     const mover = [...this.toques.values()].find((t) => t.tipo === 'mover');
     const jx = mover?.x0 ?? b.joy.x, jy = mover?.y0 ?? b.joy.y;
     g.save();
-    g.globalAlpha = mover ? 0.85 : 0.4;
-    g.fillStyle = 'rgba(255,255,255,.15)'; g.strokeStyle = 'rgba(255,255,255,.6)'; g.lineWidth = 3;
+    g.globalAlpha = mover ? 0.8 : 0.25;
+    g.fillStyle = 'rgba(255,255,255,.12)'; g.strokeStyle = 'rgba(255,255,255,.6)'; g.lineWidth = 2;
     g.beginPath(); g.arc(jx, jy, b.joy.r, 0, Math.PI * 2); g.fill(); g.stroke();
     if (mover) {
       const dx = mover.x - mover.x0, dy = mover.y - mover.y0, d = Math.hypot(dx, dy), f = Math.min(1, b.joy.r / Math.max(1, d)) * 0.6;
@@ -1203,12 +1280,41 @@ export class Jogo {
     const mirar = [...this.toques.values()].find((t) => t.tipo === 'mirar');
     const pulo = [...this.toques.values()].find((t) => t.tipo === 'pulo');
     g.save();
-    g.globalAlpha = mirar ? 1 : 0.65;
-    g.fillStyle = '#d6332b'; g.strokeStyle = '#fff'; g.lineWidth = 4;
+    g.globalAlpha = mirar ? 0.9 : 0.4;
+    g.fillStyle = '#d6332b'; g.strokeStyle = '#fff'; g.lineWidth = 2;
     g.beginPath(); g.arc(b.fogo.x, b.fogo.y, b.fogo.r * (mirar ? 1.08 : 1), 0, Math.PI * 2); g.fill(); g.stroke();
     g.font = `900 ${b.fogo.r * 0.5}px system-ui, sans-serif`; g.textAlign = 'center'; g.textBaseline = 'middle'; g.fillStyle = '#fff';
     g.fillText('🎯', b.fogo.x, b.fogo.y + 2);
-    g.globalAlpha = pulo ? 1 : 0.65;
+    // dica de como mirar: nas 3 primeiras partidas, até a pessoa mirar
+    if (!mirar && !this.mirou && this.mirasAntes < 3 && this.ultimo?.fase !== 'fim') {
+      const pulsa = (Math.sin(performance.now() / 260) + 1) / 2;
+      g.save();
+      g.globalAlpha = 0.55 + pulsa * 0.45;
+      g.fillStyle = '#fff';
+      const R = b.fogo.r + 8 + pulsa * 5;
+      for (let q = 0; q < 4; q++) {   // setinhas em volta: dá pra arrastar pra qualquer lado
+        const a = (q * Math.PI) / 2;
+        g.save(); g.translate(b.fogo.x + Math.cos(a) * R, b.fogo.y + Math.sin(a) * R); g.rotate(a);
+        g.beginPath(); g.moveTo(8, 0); g.lineTo(-2, -7); g.lineTo(-2, 7); g.closePath(); g.fill();
+        g.restore();
+      }
+      g.font = '800 13px "Barlow Semi Condensed", system-ui, sans-serif';
+      g.textAlign = 'right'; g.textBaseline = 'middle';
+      g.lineWidth = 3; g.strokeStyle = 'rgba(0,0,0,.85)';
+      const linhas = ['ARRASTE O 🎯 PRA MIRAR', 'ou toque no mapa onde quer atirar'];
+      linhas.forEach((txt, n) => {
+        const ty = b.bomba.y - b.bomba.r - 40 + n * 17, tx = this.vw - 12;
+        g.strokeText(txt, tx, ty); g.fillText(txt, tx, ty);
+      });
+      g.restore();
+      g.textAlign = 'center'; g.textBaseline = 'middle'; g.fillStyle = '#fff';
+    }
+    if (mirar) {   // bolinha do analógico de mira
+      const dx = mirar.x - mirar.x0, dy = mirar.y - mirar.y0, f = Math.min(1, b.fogo.r / Math.max(1, Math.hypot(dx, dy))) * 0.7;
+      g.fillStyle = 'rgba(255,255,255,.85)';
+      g.beginPath(); g.arc(b.fogo.x + dx * f, b.fogo.y + dy * f, b.fogo.r * 0.28, 0, Math.PI * 2); g.fill();
+    }
+    g.globalAlpha = pulo ? 0.9 : 0.4;
     g.fillStyle = '#2a7be0';
     g.beginPath(); g.arc(b.pulo.x, b.pulo.y, b.pulo.r, 0, Math.PI * 2); g.fill(); g.stroke();
     g.fillStyle = '#fff'; g.font = `900 ${b.pulo.r * 0.9}px system-ui, sans-serif`;
@@ -1216,7 +1322,7 @@ export class Jogo {
     // bomba: quantas ainda posso plantar
     const minhas = (this.ultimo?.bm ?? []).filter((x) => x[3] === this.eu).length;
     const livres = BOMBA.max - minhas;
-    g.globalAlpha = [...this.toques.values()].some((t) => t.tipo === 'bomba') ? 1 : livres ? 0.7 : 0.3;
+    g.globalAlpha = [...this.toques.values()].some((t) => t.tipo === 'bomba') ? 0.9 : livres ? 0.4 : 0.2;
     g.fillStyle = '#3a3a44';
     g.beginPath(); g.arc(b.bomba.x, b.bomba.y, b.bomba.r, 0, Math.PI * 2); g.fill(); g.stroke();
     g.fillStyle = '#fff'; g.font = `900 ${b.bomba.r * 0.85}px system-ui, sans-serif`;

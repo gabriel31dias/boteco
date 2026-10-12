@@ -34,13 +34,18 @@ export const net = {
     if (socket && jogoAtual === jogo) return socket;
     if (socket) net.disconnect();
     jogoAtual = jogo;
-    socket = io({ path: `/ws/${jogo}`, auth: { token }, transports: ['websocket', 'polling'] });
+    // `vivo`: este cliente responde a conferência de presença antes da partida abrir
+    socket = io({ path: `/ws/${jogo}`, auth: { token, vivo: 1 }, transports: ['websocket', 'polling'] });
+    socket.on('vivo', (cb) => cb?.({ visivel: document.visibilityState !== 'hidden' }));
     // Lista fixa: evento que não estiver aqui nunca chega em quem escuta.
     for (const ev of ['joined', 'denied', 'proposta', 'convidado', 'recusada',
       'start', 'shot', 'resolved', 'estado', 'settled', 'left', 'mesa', 'reacao', 'ausente']) {
       socket.on(ev, (p) => entregar(ev, p));
     }
     socket.on('connect_error', (e) => entregar('erro', e.message));
+    // Caiu sem a gente pedir: o servidor trata desconexão como saída (W.O.) e o
+    // aviso de fim vai pro socket velho. Quem está em partida precisa saber.
+    socket.on('disconnect', (motivo) => { if (motivo !== 'io client disconnect') entregar('caiu', motivo); });
     return socket;
   },
 
@@ -74,6 +79,25 @@ export const net = {
   /** Ação de jogo: o formato é do jogo (velha: {casa}; dominó: {tipo,id,side}). */
   jogada(acao) { socket?.emit('jogada', acao); },
   leave() { socket?.emit('leave'); },
+  /** Jogo em tempo real parou de receber estado: derruba a conexão e avisa como queda. */
+  /** Jogo em tempo real parou de receber estado: a tela de partida confere e conta os 5s. */
+  instavel() { entregar('instavel'); },
+  /**
+   * Ainda estou na partida? 'ok'; 'fora' (o socket caiu, ou caiu e voltou e o
+   * servidor já deu W.O.); 'sem resposta' em `ms` (conexão morta que o socket
+   * ainda não percebeu); 'trocou' (saiu ou entrou em outro jogo nesse meio-tempo).
+   * @returns {Promise<'ok'|'fora'|'sem resposta'|'trocou'>}
+   */
+  conferir(ms = 4000) {
+    const s = socket;
+    return new Promise((ok) => {
+      if (!s?.connected) { ok('fora'); return; }
+      s.timeout(ms).emit('conferir', (err, r) => {
+        if (socket !== s) ok('trocou');
+        else ok(err ? 'sem resposta' : r?.naPartida === false ? 'fora' : 'ok');
+      });
+    });
+  },
 };
 
 // Sumiu da tela (outro app, tela bloqueada): o servidor dá um tempo e, se não

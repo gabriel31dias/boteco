@@ -21,8 +21,8 @@ export const ALTURA = 720;
 export const CHAO = 652;
 export const GRAVIDADE = 1900;
 export const QUEDA_MAX = 950;
-export const PULO = 720;
-export const PULO_DUPLO = 620;
+export const PULO = 800;            // simples sobe ~168: passa folgado uma fileira (118)
+export const PULO_DUPLO = 700;      // com o duplo, ~297
 export const ATRAVESSAR = 0.25;           // s ignorando plataforma depois de "descer"
 export const TICK_MS = 33;
 export const ABATES_VITORIA = 10;
@@ -92,7 +92,7 @@ export const PEGAR = 30;   // meia largura da área de pegar item
  * Acima do térreo (topo em y=160) o mapa é gerado sem fim, fileira por
  * fileira, a partir de `p.seed`: o servidor e cada cliente calculam a mesma
  * coisa, nada disso vai pela rede. Fileira j (1, 2, …) fica em y = 160 − j·ALTURA_FILEIRA
- * — dá pra subir com um pulo duplo (alcança ~235). Ímpar: uma de cada lado;
+ * — dá pra subir com um pulo simples (alcança ~168; o duplo, ~297). Ímpar: uma de cada lado;
  * par: uma no meio e uma num lado. Tem queijo em quase metade, kit de vez em quando.
  */
 export const ALTURA_FILEIRA = 118;
