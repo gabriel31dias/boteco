@@ -16,10 +16,14 @@ import { CachetaScreen } from './app/screens/CachetaScreen'
 import { TanqueScreen } from './app/screens/TanqueScreen'
 import { RatosScreen } from './app/screens/RatosScreen'
 import { CapivaraScreen } from './app/screens/CapivaraScreen'
+import { PsicopatasScreen } from './app/screens/PsicopatasScreen'
+import { GalinhasScreen } from './app/screens/GalinhasScreen'
 import capaCacheta from './assets/cacheta/capa.webp'
 import capaTanque from './assets/tanque/capa.webp'
 import capaRatos from './assets/ratos/capa.webp'
 import capaCapivara from './assets/capivara/capa.webp'
+import capaPsicopatas from './assets/psicopatas/capa.webp'
+import capaGalinhas from './assets/galinhas/capa.webp'
 import capaDamas from './app/assets/jogo-damas.png'
 import capaVelha from './app/assets/jogo-velha.png'
 import Lobby from './Lobby.jsx'
@@ -54,6 +58,7 @@ const destaque = [
 const boteco = [
   ['Sinuca Online', 'Sinuca'], ['Truco Online', 'Cartas'], ['Pôquer Online', 'Cartas'], ['Dominó Online', ''],
   ['Tanques Online', '', capaTanque], ['Ratos em Guerra', '', capaRatos], ['Capivara Pistola', '', capaCapivara],
+  ['Ratos Psicopatas', '', capaPsicopatas], ['Galinhas Psicopatas', '', capaGalinhas],
   // ['Cassino Ao Vivo', 'Cassino'],
 ]
 const todos = [
@@ -65,14 +70,16 @@ const todos = [
   // ['Blackjack', 'Cartas', img('m7.png')], ['Caça-Níquel', 'Slots', img('m8.png')], ['Roleta', 'Cassino', img('m9.png')],
   // ['Crash', 'Cassino', img('m10.png')], ['Mines', 'Cassino', img('m11.png')],
   ['Damas', '', capaDamas], ['Jogo da Velha', '', capaVelha], ['Cacheta', 'Cartas', capaCacheta],
-  ['Tanques', '', capaTanque], ['Ratos', '', capaRatos], ['Capivara', '', capaCapivara],
+  ['Tanques', '', capaTanque], ['Ratos', '', capaRatos], ['Capivara', '', capaCapivara], ['Psicopatas', '', capaPsicopatas], ['Galinhas', '', capaGalinhas],
 ]
 /** Tile da vitrine -> jogo do servidor (server/jogos.js). O resto ainda não tem servidor. */
 const JOGO_DO_TILE = { 'Sinuca Online': 'sinuca', Sinuca: 'sinuca', 'Truco Online': 'truco', Truco: 'truco',
   'Dominó Online': 'domino', Dominó: 'domino', Damas: 'damas', 'Jogo da Velha': 'velha',
   'Pôquer Online': 'poker', Poker: 'poker', Buraco: 'buraco', Cacheta: 'cacheta',
   'Tanques Online': 'tanque', Tanques: 'tanque', 'Ratos em Guerra': 'ratos', Ratos: 'ratos',
-  'Capivara Pistola': 'capivara', Capivara: 'capivara' }
+  'Capivara Pistola': 'capivara', Capivara: 'capivara',
+  'Ratos Psicopatas': 'psicopatas', Psicopatas: 'psicopatas',
+  'Galinhas Psicopatas': 'galinhas', Galinhas: 'galinhas' }
 const reais = (v) => `R$ ${v.toFixed(2).replace('.', ',')}`
 const steps = [
   ['Cadastre-se', 'Crie sua conta em', 'menos de 1 minuto'],
@@ -738,6 +745,8 @@ function Partida({ match }) {
     : match.game === 'tanque' ? <TanqueScreen />
     : match.game === 'ratos' ? <RatosScreen />
     : match.game === 'capivara' ? <CapivaraScreen />
+    : match.game === 'psicopatas' ? <PsicopatasScreen />
+    : match.game === 'galinhas' ? <GalinhasScreen />
     : <GameScreen />
   // Avisos da mesa ("o adversário saiu do app…") também durante a partida
   return <div className="bt-partida">{tela}<Reacoes key={match.matchId} match={match} /><ChatAvisos />{notification && <div className="bt-toast" role="status">{notification}</div>}

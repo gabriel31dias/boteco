@@ -11,7 +11,7 @@ const SITE_URL = 'https://botecoonline.site';
 const SERVICOS = {
   sinuca: 4001, velha: 4002, domino: 4003, truco: 4004, damas: 4005,
   'truco-duplas': 4006, 'domino-duplas': 4007, chat: 4008, poker: 4009,
-  buraco: 4010, 'buraco-duplas': 4011, cacheta: 4012, tanque: 4014, ratos: 4015, capivara: 4016,
+  buraco: 4010, 'buraco-duplas': 4011, cacheta: 4012, tanque: 4014, ratos: 4015, capivara: 4016, psicopatas: 4017, galinhas: 4018,
 };
 
 const backend = ([jogo, porta]) => ({

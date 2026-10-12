@@ -167,6 +167,32 @@ export const JOGOS = {
     cores: ['vermelho', 'azul', 'verde', 'rosa'],
     nomesCores: { vermelho: 'Bandana · frigideira', azul: "Surfista · pistola d'água", verde: 'Sargento · coco-granada', rosa: 'Bailarina · melancia' },
   },
+  // Tiro de plataforma no esgoto tóxico, tempo real (ver server/jogos/psicopatas.js).
+  psicopatas: {
+    id: 'psicopatas',
+    nome: 'Ratos Psicopatas',
+    subtitulo: '2 a 4 · esgoto tóxico · Q troca pra arma branca',
+    porta: 3017,
+    arbitro: 'servidor',
+    minJogadores: 2,
+    maxJogadores: 4,
+    esperaMs: 10_000,
+    cores: ['azul', 'vermelho', 'verde', 'amarelo'],
+    nomesCores: { azul: 'Magrelo · AK e porrete', vermelho: 'Gordo · escopeta e frigideira', verde: 'Bandana · metralhadora e faca', amarelo: 'Óculos · sniper e motosserra' },
+  },
+  // Briga corpo a corpo no celeiro, tempo real (ver server/jogos/galinhas.js).
+  galinhas: {
+    id: 'galinhas',
+    nome: 'Galinhas Psicopatas',
+    subtitulo: '2 a 4 · corpo a corpo no celeiro · decepa, esmaga, explode',
+    porta: 3018,
+    arbitro: 'servidor',
+    minJogadores: 2,
+    maxJogadores: 4,
+    esperaMs: 10_000,
+    cores: ['branco', 'preto', 'amarelo', 'vermelho'],
+    nomesCores: { branco: 'Branquela · cutelo', preto: 'Pretinha · facão', amarelo: 'Pintada · forcado', vermelho: 'Ruiva · porrete de prego' },
+  },
 };
 
 export const JOGO_PADRAO = 'sinuca';
