@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
+import { createPortal } from 'react-dom'
 import { useApp } from './app/context/AppContext'
 import { ChatAvisos, ChatBotao, ChatPainel, ConviteModal, PedidoAmizadeModal } from './app/components/Chat'
 import { Avatar } from './app/components/CustomIcons'
@@ -196,10 +197,11 @@ function BottomNav({ page }) {
 function Home({ openMenu, onJogar }) {
   const { isAuthenticated, walletBalance, bonusBalance, showNotification } = useApp()
   const [cat, setCat] = useState('Todos')
+  const [deposito, setDeposito] = useState(false)
   const filtra = (list, prefix) => list.map(([g, c, url], i) => [g, c, url ?? img(`${prefix}${i}.png`)]).filter(([, c]) => cat === 'Todos' || c === cat)
   const secoes = [
     ['ic-fire.png', <>JOGOS EM <em>DESTAQUE</em></>, 'row games', filtra(destaque, 'g')],
-    ['ic-trophy.png', 'JOGOS DO BOTECO', 'row boteco', filtra(boteco, 'b')],
+    ['ic-trophy.png', 'DESTAQUES', 'grid-jogos', filtra(boteco, 'b')],
     ['ic-beer.png', <>TODOS OS <em>JOGOS</em></>, 'grid-jogos', filtra(todos, 'm')],
   ].filter((sec) => sec[3].length)
   return (
@@ -219,8 +221,9 @@ function Home({ openMenu, onJogar }) {
           </>
         )}
         <img className="logo" src={img('logo.png')} alt="Boteco Online" />
-        <button className="bonus" onClick={() => (location.hash = '/cadastro')}>Quero meu bônus <Arrow s={28} /></button>
+        <button className="bonus" onClick={() => (isAuthenticated ? setDeposito(true) : (location.hash = '/cadastro'))}>Quero meu bônus <Arrow s={28} /></button>
       </header>
+      {deposito && <DepositoModal onClose={() => setDeposito(false)} />}
 
       <nav className="tabs">
         {tabs.map(([t, w], i) => (
@@ -575,6 +578,86 @@ function Cadastro() {
       </form>
       <p className="cd-aviso">+18 · Jogue com responsabilidade</p>
     </>
+  )
+}
+
+const VALORES = [10, 20, 50, 100, 200]
+
+/** Adicionar saldo: escolhe o valor, gera o Pix copia e cola e confere sozinho até cair. */
+function DepositoModal({ onClose }) {
+  const { walletBalance, bonusBalance, criarPix, conferirPix, showNotification } = useApp()
+  const [valor, setValor] = useState(50)
+  const [outro, setOutro] = useState('')
+  const [pix, setPix] = useState(null)
+  const [gerando, setGerando] = useState(false)
+  const [copiado, setCopiado] = useState(false)
+  const total = outro ? parseFloat(outro.replace(',', '.')) || 0 : valor
+
+  // Com o código na tela, o servidor pergunta ao provedor se o Pix caiu.
+  useEffect(() => {
+    if (!pix) return
+    let vivo = true
+    const t = setInterval(async () => { if (await conferirPix(pix.externalId) && vivo) onClose() }, 4000)
+    return () => { vivo = false; clearInterval(t) }
+  }, [pix])
+
+  const gerar = async () => {
+    if (total < 5) return showNotification('O valor mínimo de depósito é R$ 5,00')
+    setGerando(true)
+    try { setPix(await criarPix(total)) }
+    catch (e) { showNotification(`❌ ${e.message}`) }
+    setGerando(false)
+  }
+  const copiar = async () => {
+    try { await navigator.clipboard.writeText(pix.brcode) } catch { /* sem permissão */ }
+    setCopiado(true)
+    showNotification('Código Pix copiado!')
+    setTimeout(() => setCopiado(false), 2500)
+  }
+  const conferir = async () => {
+    if (await conferirPix(pix.externalId)) onClose()
+    else showNotification('Ainda não caiu — assim que o banco confirmar, o saldo entra sozinho.')
+  }
+
+  // Fora do .stage: lá dentro o zoom de encaixe na tela encolheria o modal junto.
+  return createPortal(
+    <div className="lb" role="dialog" aria-modal="true" aria-labelledby="dp-titulo">
+      <div className="lb-bg" onClick={onClose} />
+      <div className="lb-card lb-espera">
+        <button className="lb-x" onClick={onClose} aria-label="Fechar">✕</button>
+        <span className="lb-tag">Depósito via Pix</span>
+        <h2 id="dp-titulo">ADICIONE <em>SALDO</em></h2>
+        <p className="lb-saldo">Saldo atual: <b>{reais(walletBalance + bonusBalance)}</b></p>
+        {!pix ? (
+          <>
+            <h3>ESCOLHA O VALOR</h3>
+            <div className="lb-chips dp-chips">
+              {VALORES.map((v) => (
+                <button key={v} className={!outro && valor === v ? 'on' : ''} onClick={() => { setValor(v); setOutro('') }}>R$ {v}</button>
+              ))}
+            </div>
+            <label className="dp-outro">
+              <span>R$</span>
+              <input inputMode="decimal" placeholder="Outro valor" value={outro} onChange={(e) => setOutro(e.target.value.replace(/[^\d,.]/g, ''))} />
+            </label>
+            <button className="lb-btn" onClick={gerar} disabled={gerando}>
+              {gerando ? 'Gerando Pix…' : `Gerar Pix de ${reais(total)}`}
+            </button>
+            <p className="ft-dica">O saldo entra na hora, assim que o banco confirmar.</p>
+          </>
+        ) : (
+          <>
+            <h3>PAGUE {reais(pix.amount)}</h3>
+            <p className="lb-sub">Copie o código e cole no app do seu banco, em Pix copia e cola.</p>
+            <p className="dp-codigo">{pix.brcode}</p>
+            <button className="lb-btn" onClick={copiar}>{copiado ? '✓ Copiado!' : 'Copiar código Pix'}</button>
+            <button className="lb-btn verde" onClick={conferir}>Já paguei, conferir</button>
+            <button className="lb-btn sec" onClick={() => setPix(null)}>Voltar e trocar o valor</button>
+          </>
+        )}
+      </div>
+    </div>,
+    document.body,
   )
 }
 

@@ -371,3 +371,9 @@ body:has(.ratos) .reacoes-chegadas, body:has(.capivara) .reacoes-chegadas { bott
 .lb-escolha button:disabled { opacity: .45; filter: grayscale(.7); }
 .lb-vagas .lb-fig { width: 30px; height: 30px; object-fit: contain; flex: none; }
 .lb-vagas span small { display: block; font-size: 10px; color: #aaa; font-weight: 600; }
+.dp-chips button { height: 44px; font-size: 15px; }
+.dp-outro { display: flex; align-items: center; gap: 8px; height: 48px; margin-top: 8px; padding: 0 14px; border-radius: 12px; background: #0a0a0b; border: 1.5px solid #34343a; }
+.dp-outro:focus-within { border-color: #ffd21e; box-shadow: 0 0 8px #ffd21e44; }
+.dp-outro span { font: 700 16px 'Roboto Condensed', sans-serif; color: #ffd21e; }
+.dp-outro input { flex: 1; min-width: 0; background: none; border: 0; outline: none; color: #fff; font: 700 18px 'Roboto Condensed', sans-serif; }
+.dp-codigo { margin-top: 12px; max-height: 84px; overflow-y: auto; padding: 10px 12px; border-radius: 12px; background: #0a0a0b; border: 1.5px dashed #ffd21e66; font: 11px/1.4 monospace; color: #bbb; word-break: break-all; text-align: left; }

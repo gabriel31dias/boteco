@@ -23,13 +23,18 @@ export const CapivaraScreen: React.FC = () => {
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!match || !canvas) return;
+    // partida nova (revanche) não herda o resultado da anterior
+    setFim(null); setPago(null);
     entrarTelaCheia();
     const jogo = new Jogo(canvas, {
       assento: match.seat,
       jogadores: match.players,
       onEntrada: (e: object) => net.jogada(e),
       onSair: () => { net.leave(); setMatch(null); },
+      onCaiu: () => net.instavel(),
     });
+    // conexão caiu de vez: congela; o aviso e a contagem são da tela de partida (ConexaoPerdida)
+    const offCaiu = net.on('caiu', () => jogo.encerrar());
     const offEstado = net.on('estado', (e: { fim: Fim | null }) => {
       jogo.aplicar(e);
       if (e.fim) setFim(e.fim);
@@ -44,7 +49,7 @@ export const CapivaraScreen: React.FC = () => {
     const toque = () => entrarTelaCheia();
     canvas.addEventListener('pointerdown', toque, { once: true });
     return () => {
-      offEstado(); offSettled(); offLeft();
+      offEstado(); offSettled(); offLeft(); offCaiu();
       canvas.removeEventListener('pointerdown', toque);
       jogo.destroy();
       sairTelaCheia();

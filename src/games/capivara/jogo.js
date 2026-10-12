@@ -45,7 +45,7 @@ const POW = ['PLAFT!', 'SPLASH!', 'PÉÉM!', 'TUM!'];
 export class Jogo {
   /**
    * @param {HTMLCanvasElement} canvas
-   * @param {{ assento: number, jogadores: {name: string, avatar?: string|null, cor?: string|null}[], onEntrada: (e: object) => void, onSair: () => void }} op
+   * @param {{ assento: number, jogadores: {name: string, avatar?: string|null, cor?: string|null}[], onEntrada: (e: object) => void, onSair: () => void, onCaiu?: () => void }} op
    */
   constructor(canvas, op) {
     this.canvas = canvas;
@@ -79,6 +79,10 @@ export class Jogo {
     this.toques = new Map();
     this.mira = op.assento % 2 ? Math.PI : 0;
     this.toque = matchMedia('(pointer: coarse)').matches;
+    this.encerrado = false;   // acabou (ou a conexão caiu): para de mandar comando e de prever
+    this.chegou = performance.now();
+    this.mirou = false;       // já mirou nesta partida (a dica some)
+    try { this.mirasAntes = Number(localStorage.getItem('capivara-miras')) || 0; } catch { this.mirasAntes = 0; }
 
     this.cmdSeq = 0;
     this.pendentes = [];
@@ -106,6 +110,9 @@ export class Jogo {
   // ------------------------------------------------------------ estado
 
   aplicar(e) {
+    if (this.encerrado) return;
+    this.chegou = performance.now();
+    this.travou = false;
     this.reconciliar(e);
     const agora = performance.now();
     const d = e.agora - agora;
@@ -113,6 +120,27 @@ export class Jogo {
     this.quadros.push(e);
     if (this.quadros.length > 30) this.quadros.shift();
     for (const ev of e.ev ?? []) if (ev.id > this.vistos) { this.vistos = ev.id; this.eventosPendentes.push({ ...ev, t: e.agora }); }
+    if (e.fim) this.encerrar();
+  }
+
+  /**
+   * Fim da partida pra mim: solta os controles e congela a minha capivara. Sem
+   * isso, quem perdia o último estado (conexão caiu) seguia andando sozinho.
+   */
+  encerrar() {
+    if (this.encerrado) return;
+    this.encerrado = true;
+    this.toques.clear(); this.teclas.clear();
+    this.mouseFogo = false; this.bombaPendente = false;
+    this.pendentes = [];
+    this.andando = false;
+  }
+
+  /** A dica de como mirar some depois que a pessoa mira de verdade (fica salvo no aparelho). */
+  aprendeuMirar() {
+    if (this.mirou) return;
+    this.mirou = true;
+    try { localStorage.setItem('capivara-miras', String(this.mirasAntes + 1)); } catch { /* sem storage */ }
   }
 
   mundo(e, eu) { return { cores: e.cores, capis: e.c.map((o, j) => (j === this.eu ? eu : { x: o[0], y: o[1], vivo: !!o[4] })) }; }
@@ -369,29 +397,45 @@ export class Jogo {
   paraMundo(v) { return { x: (v.x - this.ox) / this.esc, y: (v.y - this.oy) / this.esc }; }
 
   botoes() {
-    const s = Math.min(this.vw, this.vh);
+    const s = Math.min(this.vw, this.vh), m = 12;
+    if (!this.toque) return { sair: { x: 14, y: this.vh - 52, w: 40, h: 40 }, mudo: { x: 62, y: this.vh - 52, w: 40, h: 40 } };
+    // no toque: tudo pequeno e encostado nos cantos, pra não tampar o jogo
+    const joy = { x: m + s * 0.12, y: this.vh - m - s * 0.12, r: s * 0.12 };
+    const fogo = { x: this.vw - m - s * 0.11, y: this.vh - m - s * 0.11, r: s * 0.11 };
+    const br = s * 0.075;
     return {
-      sair: { x: 14, y: this.vh - 52, w: 40, h: 40 },
-      mudo: { x: 62, y: this.vh - 52, w: 40, h: 40 },
-      joy: { x: s * 0.2, y: this.vh - s * 0.24, r: s * 0.15 },
-      fogo: { x: this.vw - s * 0.2, y: this.vh - s * 0.24, r: s * 0.14 },
-      bomba: { x: this.vw - s * 0.42, y: this.vh - s * 0.14, r: s * 0.09 },
+      // ✕ e 🔊 empilhados na borda esquerda, acima do joystick
+      sair: { x: 8, y: joy.y - joy.r - 84, w: 34, h: 34 },
+      mudo: { x: 8, y: joy.y - joy.r - 44, w: 34, h: 34 },
+      joy,
+      fogo,
+      bomba: { x: fogo.x, y: fogo.y - fogo.r - 12 - br, r: br },
     };
   }
 
   ponteiroDesce(e) {
     destravar();
     const v = this.paraVirtual(e.clientX, e.clientY);
+    if (e.pointerType !== 'mouse') this.toque = true;   // antes de `botoes()`: o layout muda no toque
     const b = this.botoes();
     const dentro = (r) => v.x >= r.x && v.x <= r.x + r.w && v.y >= r.y && v.y <= r.y + r.h;
     if (dentro(b.sair)) { if (confirm('Sair da partida? Quem sai no meio perde a entrada.')) this.op.onSair(); return; }
     if (dentro(b.mudo)) { som.alternarMudo(); return; }
-    if (this.ultimo?.c[this.eu]?.[10] && Math.hypot(v.x - b.bomba.x, v.y - b.bomba.y) < b.bomba.r * 1.3) { this.bombaPendente = true; return; }
+    if (b.bomba && this.ultimo?.c[this.eu]?.[10] && Math.hypot(v.x - b.bomba.x, v.y - b.bomba.y) < b.bomba.r * 1.45) { this.bombaPendente = true; return; }
     if (e.pointerType === 'mouse' && e.button === 2 && this.ultimo?.c[this.eu]?.[10]) { this.bombaPendente = true; return; }
     if (e.pointerType === 'mouse') { this.mouseV = v; if (e.button === 0 || e.button === 2) this.mouseFogo = true; return; }
     e.preventDefault();
     this.toque = true;
-    this.toques.set(e.pointerId, { tipo: v.x < this.vw / 2 ? 'mover' : 'mirar', x0: v.x, y0: v.y, x: v.x, y: v.y });
+    if (v.x < this.vw / 2) {
+      this.toques.set(e.pointerId, { tipo: 'mover', x0: v.x, y0: v.y, x: v.x, y: v.y });
+      return;
+    }
+    // no botão de tiro: analógico preso no centro do botão (já mira no toque).
+    // fora dele, na metade direita: mira no ponto tocado do mapa.
+    const noFogo = Math.hypot(v.x - b.fogo.x, v.y - b.fogo.y) < b.fogo.r * 1.6;
+    this.toques.set(e.pointerId, noFogo
+      ? { tipo: 'mirar', x0: b.fogo.x, y0: b.fogo.y, x: v.x, y: v.y }
+      : { tipo: 'apontar', x0: v.x, y0: v.y, x: v.x, y: v.y });
   }
 
   ponteiroMove(e) {
@@ -404,6 +448,7 @@ export class Jogo {
   ponteiroSobe(e) { if (e.pointerType === 'mouse') { this.mouseFogo = false; return; } this.toques.delete(e.pointerId); }
 
   enviarEntrada(est) {
+    if (this.encerrado) return;
     let mx = 0, my = 0, fogo = false;
     const k = this.teclas;
     if (k.has('a') || k.has('arrowleft')) mx -= 1;
@@ -414,12 +459,16 @@ export class Jogo {
     const meu = est?.capis[this.eu];
     const mouse = this.mouseV ? this.paraMundo(this.mouseV) : null;
     if (meu && mouse && !this.toque) this.mira = Math.atan2(mouse.y - (meu.y - 45), mouse.x - meu.x);
-    const r = this.botoes().joy.r;
+    const bt = this.botoes(), r = bt.joy?.r ?? 1;
     let mirando = false;
     for (const t of this.toques.values()) {
       const dx = t.x - t.x0, dy = t.y - t.y0, d = Math.hypot(dx, dy);
       if (t.tipo === 'mover' && d > 6) { const f = Math.min(1, d / r); mx = (dx / d) * f; my = (dy / d) * f; }
-      if (t.tipo === 'mirar') { fogo = true; mirando = true; if (d > 12) this.mira = Math.atan2(dy, dx); }
+      if (t.tipo === 'mirar') { fogo = true; mirando = true; if (d > (bt.fogo?.r ?? 60) * 0.2) { this.mira = Math.atan2(dy, dx); this.aprendeuMirar(); } }
+      if (t.tipo === 'apontar') {
+        fogo = true; mirando = true;
+        if (meu) { const m = this.paraMundo(t); this.mira = Math.atan2(m.y - (meu.y - 45), m.x - meu.x); this.aprendeuMirar(); }
+      }
     }
     if (this.toque && !mirando && (mx || my)) this.mira = Math.atan2(my, mx);
     const n = Math.hypot(mx, my);
@@ -552,11 +601,34 @@ export class Jogo {
     g.lineWidth = 4; g.strokeStyle = 'rgba(0,0,0,.85)'; g.fillStyle = this.tom(i);
     const rot = i === this.eu ? 'VOCÊ' : this.nome(i).toUpperCase();
     g.strokeText(rot, r.x, by - 5); g.fillText(rot, r.x, by - 5);
+    // mira: só a minha. Parada, uma linha pontilhada curta; mirando, a linha do
+    // tiro até o alcance da arma (a melancia mostra o leque) e um alvo.
     if (i === this.eu) {
+      const k = CAPIVARAS[c];
+      const mirando = this.mouseFogo || [...this.toques.values()].some((t) => t.tipo === 'mirar' || t.tipo === 'apontar');
       g.save(); g.translate(r.x, r.y - 45); g.rotate(r.ang);
-      g.strokeStyle = 'rgba(255,255,255,.55)'; g.setLineDash([5, 7]); g.lineWidth = 2;
-      g.beginPath(); g.moveTo(RAIO + 26, 0); g.lineTo(RAIO + 86, 0); g.stroke(); g.setLineDash([]);
-      g.beginPath(); g.arc(RAIO + 96, 0, 6, 0, Math.PI * 2); g.stroke();
+      if (mirando) {
+        const ini = RAIO + 22, alc = Math.min(k.bala * k.vidaBala, 560);
+        const gr = g.createLinearGradient(ini, 0, ini + alc, 0);
+        gr.addColorStop(0, 'rgba(255,90,70,.95)'); gr.addColorStop(1, 'rgba(255,90,70,0)');
+        g.strokeStyle = gr; g.lineWidth = 3; g.setLineDash([12, 7]);
+        const raios = k.balas > 1 ? [-k.espalha, 0, k.espalha] : [0];
+        for (const a of raios) {
+          g.beginPath(); g.moveTo(ini, 0); g.lineTo(ini + Math.cos(a) * alc, Math.sin(a) * alc); g.stroke();
+        }
+        g.setLineDash([]);
+        const d = ini + (k.granada ? alc : Math.min(alc * 0.8, 240));   // o coco cai no fim do alcance
+        g.strokeStyle = '#fff'; g.lineWidth = 2.5;
+        g.beginPath(); g.arc(d, 0, k.granada ? 20 : 11, 0, Math.PI * 2); g.stroke();
+        g.beginPath();
+        for (const [x0, y0, x1, y1] of [[d - 17, 0, d - 6, 0], [d + 6, 0, d + 17, 0], [d, -17, d, -6], [d, 6, d, 17]]) { g.moveTo(x0, y0); g.lineTo(x1, y1); }
+        g.stroke();
+        g.fillStyle = '#ff5a46'; g.beginPath(); g.arc(d, 0, 3, 0, Math.PI * 2); g.fill();
+      } else {
+        g.strokeStyle = 'rgba(255,255,255,.55)'; g.setLineDash([5, 7]); g.lineWidth = 2;
+        g.beginPath(); g.moveTo(RAIO + 26, 0); g.lineTo(RAIO + 86, 0); g.stroke(); g.setLineDash([]);
+        g.beginPath(); g.arc(RAIO + 96, 0, 6, 0, Math.PI * 2); g.stroke();
+      }
       g.restore();
     }
   }
@@ -642,6 +714,8 @@ export class Jogo {
     const tServ = this.desvio == null ? 0 : agora + this.desvio - ATRASO;
     const est = this.interpolar(tServ);
     this.tratarEventos(tServ, est);
+    // no meio do jogo o servidor manda estado ~30x por segundo: 3s calado é conexão com problema
+    if (!this.encerrado && !this.travou && this.ultimo?.fase === 'jogo' && agora - this.chegou > 3000) { this.travou = true; this.op.onCaiu?.(); }
     this.enviarEntrada(est);
     if (est && this.pred && this.predVivo) {
       this.corr.x *= 0.82; this.corr.y *= 0.82;
@@ -841,7 +915,11 @@ export class Jogo {
     }
     const e = this.ultimo;
     if (!e) return;
-    const vw = this.vw, n = e.c.length;
+    // tela baixa (celular deitado): placar e relógio menores
+    const zoom = this.vh < 500 ? 0.72 : 1;
+    g.save(); g.scale(zoom, zoom);
+    let vw = this.vw / zoom;
+    const n = e.c.length;
     const porLado = Math.ceil(n / 2);
     const w = Math.min(250, (vw - 160) / 2 / porLado - 8), h = 54, y = 8;
     const compacto = w < 190;
@@ -888,6 +966,8 @@ export class Jogo {
     g.font = '900 24px "Barlow Semi Condensed", system-ui, sans-serif';
     g.fillStyle = seg <= 15 && e.fase === 'jogo' ? '#ff6b6b' : '#fff';
     g.fillText(`${Math.floor(seg / 60)}:${String(seg % 60).padStart(2, '0')}`, vw / 2, 50);
+    g.restore();
+    vw = this.vw;
 
     this.feed = this.feed.filter((f) => agora - f.ini < 5000);
     g.font = '700 13px "Barlow Semi Condensed", system-ui, sans-serif';
@@ -944,7 +1024,7 @@ export class Jogo {
     for (const [r, txt] of [[b.sair, '✕'], [b.mudo, som.mudo ? '🔇' : '🔊']]) {
       g.fillStyle = 'rgba(6,30,20,.75)';
       g.beginPath(); g.roundRect(r.x, r.y, r.w, r.h, 10); g.fill();
-      g.font = '20px system-ui, sans-serif'; g.textAlign = 'center'; g.textBaseline = 'middle';
+      g.font = `${Math.round(r.w / 2)}px system-ui, sans-serif`; g.textAlign = 'center'; g.textBaseline = 'middle';
       g.fillStyle = '#fff'; g.fillText(txt, r.x + r.w / 2, r.y + r.h / 2 + 1);
       g.textBaseline = 'alphabetic';
     }
@@ -955,8 +1035,8 @@ export class Jogo {
     }
     const mover = [...this.toques.values()].find((t) => t.tipo === 'mover');
     const jx = mover?.x0 ?? b.joy.x, jy = mover?.y0 ?? b.joy.y;
-    g.save(); g.globalAlpha = mover ? 0.85 : 0.4;
-    g.fillStyle = 'rgba(255,255,255,.15)'; g.strokeStyle = 'rgba(255,255,255,.6)'; g.lineWidth = 3;
+    g.save(); g.globalAlpha = mover ? 0.8 : 0.25;
+    g.fillStyle = 'rgba(255,255,255,.12)'; g.strokeStyle = 'rgba(255,255,255,.6)'; g.lineWidth = 2;
     g.beginPath(); g.arc(jx, jy, b.joy.r, 0, Math.PI * 2); g.fill(); g.stroke();
     if (mover) {
       const dx = mover.x - mover.x0, dy = mover.y - mover.y0, d = Math.hypot(dx, dy), f = Math.min(1, b.joy.r / Math.max(1, d)) * 0.6;
@@ -964,14 +1044,42 @@ export class Jogo {
     }
     g.restore();
     const mirar = [...this.toques.values()].find((t) => t.tipo === 'mirar');
-    g.save(); g.globalAlpha = mirar ? 1 : 0.65;
-    g.fillStyle = '#e8462f'; g.strokeStyle = '#fff'; g.lineWidth = 4;
+    g.save(); g.globalAlpha = mirar ? 0.9 : 0.4;
+    g.fillStyle = '#e8462f'; g.strokeStyle = '#fff'; g.lineWidth = 2;
     g.beginPath(); g.arc(b.fogo.x, b.fogo.y, b.fogo.r * (mirar ? 1.08 : 1), 0, Math.PI * 2); g.fill(); g.stroke();
     g.font = `900 ${b.fogo.r * 0.55}px system-ui, sans-serif`; g.textAlign = 'center'; g.textBaseline = 'middle'; g.fillStyle = '#fff';
     g.fillText('💦', b.fogo.x, b.fogo.y + 2);
+    if (mirar) {   // bolinha do analógico de mira
+      const dx = mirar.x - mirar.x0, dy = mirar.y - mirar.y0, f = Math.min(1, b.fogo.r / Math.max(1, Math.hypot(dx, dy))) * 0.7;
+      g.fillStyle = 'rgba(255,255,255,.85)';
+      g.beginPath(); g.arc(b.fogo.x + dx * f, b.fogo.y + dy * f, b.fogo.r * 0.28, 0, Math.PI * 2); g.fill();
+    }
+    // dica de como mirar: nas 3 primeiras partidas, até a pessoa mirar
+    if (!mirar && !this.mirou && this.mirasAntes < 3 && this.ultimo?.fase !== 'fim') {
+      const pulsa = (Math.sin(performance.now() / 260) + 1) / 2;
+      g.save();
+      g.globalAlpha = 0.55 + pulsa * 0.45;
+      g.fillStyle = '#fff';
+      const R = b.fogo.r + 8 + pulsa * 5;
+      for (let q = 0; q < 4; q++) {   // setinhas em volta: dá pra arrastar pra qualquer lado
+        const a = (q * Math.PI) / 2;
+        g.save(); g.translate(b.fogo.x + Math.cos(a) * R, b.fogo.y + Math.sin(a) * R); g.rotate(a);
+        g.beginPath(); g.moveTo(8, 0); g.lineTo(-2, -7); g.lineTo(-2, 7); g.closePath(); g.fill();
+        g.restore();
+      }
+      g.font = '800 13px "Barlow Semi Condensed", system-ui, sans-serif';
+      g.textAlign = 'right'; g.textBaseline = 'middle';
+      g.lineWidth = 3; g.strokeStyle = 'rgba(0,0,0,.85)';
+      ['ARRASTE O 💦 PRA MIRAR', 'ou toque no mapa onde quer atirar'].forEach((txt, n) => {
+        const ty = b.bomba.y - b.bomba.r - 40 + n * 17, tx = this.vw - 12;
+        g.strokeText(txt, tx, ty); g.fillText(txt, tx, ty);
+      });
+      g.restore();
+      g.textAlign = 'center'; g.textBaseline = 'middle'; g.fillStyle = '#fff';
+    }
     if (this.ultimo?.c[this.eu]?.[10]) {   // super bomba na mão: botão pulsando
       const pul = 1 + Math.sin(performance.now() / 120) * 0.08;
-      g.globalAlpha = 1; g.fillStyle = '#2a2a33'; g.strokeStyle = '#ff4d2e'; g.lineWidth = 4;
+      g.globalAlpha = 0.9; g.fillStyle = '#2a2a33'; g.strokeStyle = '#ff4d2e'; g.lineWidth = 3;
       g.beginPath(); g.arc(b.bomba.x, b.bomba.y, b.bomba.r * pul, 0, Math.PI * 2); g.fill(); g.stroke();
       g.font = `900 ${b.bomba.r}px system-ui, sans-serif`; g.fillStyle = '#fff';
       g.fillText('💣', b.bomba.x, b.bomba.y + 2);
