@@ -1,0 +1,225 @@
+/* Tudo escopado em .sinuca: a mesa vive dentro do app React e não pode
+   encostar no <body> nem nas classes do Tailwind.
+   A HUD copia as artes de referência (src/assets/sinuca/): cada medida é
+   pixel-da-referência / 1% da largura dela, em --u. Deitada a referência é
+   1672x941; em pé, 940x1672. --u encolhe pela altura se a tela for mais baixa. */
+.sinuca { position: fixed; inset: 0; z-index: 40; overflow: hidden;
+  background: #1a0f08 url(./assets/sinuca/fundo-h.jpg) center / 100% 100%; color: #fff;
+  font: 700 14px/1.2 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  overscroll-behavior: none; touch-action: none; user-select: none;
+  --u: min(1vw, 1.777vh);
+  --card-w: calc(21.5 * var(--u)); --card-h: calc(9.9 * var(--u)); --foto: calc(9 * var(--u));
+  --bola: calc(1.5 * var(--u)); --nome: calc(1.5 * var(--u));
+  --logo-w: calc(19.7 * var(--u)); --card-y: calc(1.5 * var(--u));
+  --banner-y: calc(13.8 * var(--u)); }
+.sinuca * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+
+.sinuca canvas#game { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+
+.sinuca #hud { position: absolute; inset: 0; pointer-events: none; }
+.sinuca #hud img { display: block; }
+.sinuca #hud button { pointer-events: auto; cursor: pointer; background: none; border: 0; }
+.sinuca #hud button img { width: 100%; }
+.sinuca #hud button:active { transform: scale(.94); }
+
+/* ------------------------------------------------ topo: jogadores + logo */
+.sinuca .topo { position: absolute; left: 50%; top: 0; transform: translateX(-50%);
+  display: grid; grid-template-columns: var(--card-w) var(--logo-w) var(--card-w);
+  grid-template-areas: "a logo b"; align-items: start; column-gap: calc(.8 * var(--u));
+  animation: topo-entra .55s cubic-bezier(.16, 1, .3, 1) .15s both; }
+@keyframes topo-entra { from { opacity: 0; margin-top: -12vh; } to { opacity: 1; margin-top: 0; } }
+@media (prefers-reduced-motion: reduce) { .sinuca .topo { animation: none; } }
+.sinuca .logo { grid-area: logo; width: 100%; filter: drop-shadow(0 4px 10px rgba(0,0,0,.6)); }
+
+.sinuca .player { --cor: #1f8bff; --fundo: #0a2c86; grid-area: a; position: relative;
+  height: var(--card-h); margin-top: var(--card-y);
+  display: grid; grid-template-columns: var(--foto) 1fr; grid-template-rows: 1fr auto 1fr;
+  column-gap: calc(.6 * var(--u)); align-items: center;
+  border: calc(.25 * var(--u)) solid var(--cor); border-radius: calc(1.1 * var(--u)); overflow: hidden;
+  background: linear-gradient(160deg, var(--fundo), rgba(4,10,40,.95) 75%);
+  box-shadow: 0 0 calc(1.2 * var(--u)) var(--cor), inset 0 0 calc(1.4 * var(--u)) color-mix(in srgb, var(--cor) 55%, transparent);
+  transition: box-shadow .3s, transform .3s; }
+.sinuca .player.p1 { --cor: #ff2436; --fundo: #86101c; grid-area: b; }
+.sinuca .player .foto { grid-row: 1 / 4; width: 100%; height: 100%; object-fit: cover; object-position: top; }
+/* bolinha verde de "online" no canto da foto; pulsa na vez */
+.sinuca .player::after { content: ''; position: absolute; left: calc(.5 * var(--u)); bottom: calc(.5 * var(--u));
+  width: calc(1.5 * var(--u)); aspect-ratio: 1; border-radius: 50%;
+  background: #2ee55a; border: calc(.25 * var(--u)) solid #062a10; }
+.sinuca .name { grid-row: 1; align-self: end; font-size: var(--nome); font-weight: 800;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis; padding-right: calc(.6 * var(--u));
+  text-shadow: 0 1px 3px #000; }
+.sinuca .name::before { content: '🇧🇷 '; }
+.sinuca .balls { grid-row: 2; display: flex; gap: calc(.1 * var(--u)); padding: calc(.4 * var(--u)) 0; }
+/* segunda fileira: os buracos escuros de onde as bolas "saem" */
+.sinuca .player > .score { grid-row: 3; align-self: start; display: block; height: var(--bola);
+  width: calc(7 * var(--bola) + .6 * var(--u)); font-size: 0; border-radius: 99px;
+  background: radial-gradient(circle at center, rgba(0,0,0,.65) 60%, transparent 62%) 0 0 / calc(var(--bola) + .1 * var(--u)) 100% repeat-x; }
+.sinuca .balls i { display: block; width: var(--bola); aspect-ratio: 1; border-radius: 50%;
+  background: rgba(0,0,0,.5); box-shadow: inset 0 1px 3px rgba(0,0,0,.7); }
+/* bolas do atlas (bolas.webp, 15 quadros); --n vem do sinuca.js */
+.sinuca .balls i.on { background: url(./assets/sinuca/bolas.webp) calc(var(--n) * 100% / 14) 0 / 1500% 100%;
+  box-shadow: none; transform: scale(1.12); }
+.sinuca .balls i.done { opacity: .25; filter: grayscale(.6); }
+
+.sinuca .player.turn { transform: scale(1.04);
+  box-shadow: 0 0 calc(2 * var(--u)) var(--cor), 0 0 calc(4 * var(--u)) var(--cor), inset 0 0 calc(1.8 * var(--u)) var(--cor); }
+.sinuca .player.turn::after { box-shadow: 0 0 10px #2ee55a; animation: vez .8s ease-in-out infinite alternate; }
+@keyframes vez { to { transform: scale(1.3); } }
+
+/* ------------------------------------------------ cantos e coluna da esquerda */
+.sinuca .canto { position: absolute; filter: drop-shadow(0 3px 6px rgba(0,0,0,.6)); }
+.sinuca .menu { left: calc(1.1 * var(--u)); top: calc(.85 * var(--u)); width: calc(5.1 * var(--u)); }
+.sinuca .engrenagem { right: calc(.7 * var(--u)); top: calc(.85 * var(--u)); width: calc(4.8 * var(--u)); }
+.sinuca #som { right: calc(.7 * var(--u)); top: calc(6 * var(--u)); width: calc(4.8 * var(--u)); }
+.sinuca #som.mudo img { opacity: .4; }
+.sinuca #som.mudo::after { content: ''; position: absolute; left: 18%; right: 18%; top: 50%; height: 3px;
+  background: #ff4b4b; transform: rotate(-40deg); border-radius: 2px; }
+
+.sinuca .lateral { position: absolute; left: calc(1.2 * var(--u)); top: 31%;
+  display: flex; flex-direction: column; gap: calc(.9 * var(--u)); width: calc(5.2 * var(--u)); }
+.sinuca .lateral > * { width: 100%; filter: drop-shadow(0 3px 6px rgba(0,0,0,.6)); }
+
+/* aposta e relógio: os painéis pretos da folha de sprites, na coluna da direita */
+.sinuca .info { position: absolute; right: calc(.7 * var(--u)); top: calc(12 * var(--u));
+  display: flex; flex-direction: column; gap: calc(.6 * var(--u)); width: calc(6.6 * var(--u)); }
+.sinuca .painel { padding: calc(.4 * var(--u)) 0; display: grid; text-align: center;
+  border-radius: calc(.8 * var(--u)); background: linear-gradient(#1d1d22, #0b0b0e);
+  border: 1px solid rgba(255,255,255,.14); box-shadow: 0 4px 12px rgba(0,0,0,.6); }
+.sinuca .painel small { font-size: calc(.85 * var(--u)); color: #e8e8e8; letter-spacing: .5px; }
+.sinuca .painel b { font-size: calc(1.45 * var(--u)); line-height: 1.1; font-weight: 900; color: #ffc62b;
+  text-shadow: 0 0 8px rgba(255,190,40,.5); }
+.sinuca .painel.tempo b { color: #3cff5a; text-shadow: 0 0 8px rgba(60,255,90,.5); }
+.sinuca .painel.tempo b:empty::before { content: '00:30'; }
+.sinuca #relogio.show { color: #ffd23c; }
+.sinuca #relogio.urgente { color: #ff5a4a; animation: relogio-alerta .5s ease-in-out infinite alternate; }
+@keyframes relogio-alerta { from { transform: scale(1); } to { transform: scale(1.15); } }
+@media (prefers-reduced-motion: reduce) { .sinuca #relogio.urgente { animation: none; } }
+
+/* Os diálogos ("Vez de fulano", avisos) são os balões pretos da folha de
+   sprites ("Boa!", "Só uma!"): caixa escura, texto branco e o rabinho embaixo. */
+.sinuca #banner, .sinuca #toast { position: absolute; left: 50%; transform: translateX(-50%);
+  width: fit-content; max-width: calc(50 * var(--u)); padding: calc(.9 * var(--u)) calc(2.2 * var(--u));
+  border-radius: calc(1.2 * var(--u)); background: linear-gradient(#26262b, #0d0d10);
+  border: 1px solid rgba(255, 255, 255, .14);
+  box-shadow: 0 calc(.5 * var(--u)) calc(1.4 * var(--u)) rgba(0, 0, 0, .65), inset 0 1px 0 rgba(255, 255, 255, .08);
+  font: 800 calc(1.35 * var(--u))/1.1 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  color: #fff; text-align: center; white-space: nowrap; text-shadow: 0 1px 2px #000; }
+.sinuca #banner::after, .sinuca #toast::after { content: ''; position: absolute;
+  left: calc(1.8 * var(--u)); bottom: calc(-.9 * var(--u)); width: calc(1.5 * var(--u)); height: calc(1 * var(--u));
+  background: #0d0d10; clip-path: polygon(0 0, 100% 0, 0 100%); }
+.sinuca #banner { top: var(--banner-y); }
+.sinuca #toast { top: 50%; opacity: 0; transition: opacity .2s; }
+.sinuca #toast.show { opacity: 1; }
+.sinuca #banner:empty, .sinuca #toast:empty { display: none; }
+/* O que ainda não foi digitado: invisível, mas segurando o lugar. */
+.sinuca #banner .oculto, .sinuca #toast .oculto { visibility: hidden; font-style: normal; }
+
+/* Entra dando um pulinho. No banner o JS reinicia a animação a cada texto novo. */
+.sinuca #banner.pop, .sinuca #toast.show { animation: dialogo-pop .32s cubic-bezier(.2, 1.4, .4, 1); }
+@keyframes dialogo-pop {
+  from { transform: translateX(-50%) scale(.82); opacity: 0; }
+  60%  { transform: translateX(-50%) scale(1.05); opacity: 1; }
+  to   { transform: translateX(-50%) scale(1); opacity: 1; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .sinuca #banner.pop, .sinuca #toast.show { animation: none; }
+}
+
+.sinuca #power { position: absolute; right: calc(1.4 * var(--u)); top: 58%;
+  transform: translateY(-50%); pointer-events: auto; padding: 10px 12px;
+  --track-h: calc(19 * var(--u)); }
+.sinuca #power .track { width: calc(var(--track-h) / 6.1); height: var(--track-h); position: relative;
+  background: linear-gradient(rgba(0,0,0,.55), rgba(0,0,0,.55)), url(./assets/sinuca/forca.webp) center / 100% 100%;
+  border-radius: 999px; }
+/* o preenchimento é a mesma arte, acesa, presa no pé da barra */
+.sinuca #power .fill { position: absolute; left: 0; right: 0; bottom: 0; height: 0; border-radius: 999px;
+  background: url(./assets/sinuca/forca.webp) bottom / 100% var(--track-h) no-repeat; }
+.sinuca #power .knob { position: absolute; left: -5px; right: -5px; height: 14px; top: 0; border-radius: 8px;
+  background: linear-gradient(#fff, #9aa3ad); border: 1px solid #555; box-shadow: 0 2px 6px rgba(0,0,0,.6); }
+.sinuca #power.off { opacity: .45; pointer-events: none; }
+
+.sinuca #spin { position: absolute; right: calc(1 * var(--u)); bottom: 3%;
+  pointer-events: auto; width: calc(7 * var(--u)); height: calc(7 * var(--u)); transition: width .15s, height .15s;
+  border-radius: 50%; background: rgba(0,0,0,.55); border: 2px solid #d9a441;
+  box-shadow: 0 0 12px rgba(255,190,60,.45); }
+.sinuca #spin.open { width: 148px; height: 148px; }
+.sinuca #spin canvas { width: 100%; height: 100%; display: block; }
+.sinuca #spin.off { opacity: .45; pointer-events: none; }
+
+/* ------------------------------------------------ rodapé: modo, apostar, sair */
+.sinuca .rodape { position: absolute; left: 50%; transform: translateX(-50%); bottom: 2.6%;
+  display: flex; align-items: center; gap: calc(.9 * var(--u)); width: max-content; }
+.sinuca .rodape > * { filter: drop-shadow(0 4px 10px rgba(0,0,0,.6)); }
+.sinuca .rodape .modo { width: calc(24.8 * var(--u)); }
+.sinuca .rodape .apostar { position: relative; width: calc(24.5 * var(--u)); }
+.sinuca .rodape .apostar img { width: 100%; }
+/* o texto ocupa o vão onde a arte dizia APOSTAR (à direita das moedas) */
+.sinuca .rodape .apostar span { position: absolute; left: 33%; right: 8%; top: 12%; bottom: 14%;
+  display: grid; place-content: center; text-align: center; line-height: 1; white-space: nowrap;
+  color: #fff; text-shadow: 0 2px 0 #0b4d12, 0 0 10px rgba(0, 0, 0, .45); }
+.sinuca .rodape .apostar small { font-size: calc(24.5 * var(--u) * .035); font-weight: 800;
+  letter-spacing: .4px; opacity: .92; }
+.sinuca .rodape .apostar b { font-size: calc(24.5 * var(--u) * .1); font-weight: 900; letter-spacing: .5px;
+  -webkit-text-stroke: calc(.08 * var(--u)) #0b4d12; }
+.sinuca #menu-btn { width: calc(14 * var(--u)); }
+
+/* ------------------------------------------------ em pé (referência 940x1672)
+   Liga no celular em pé e no botão 2D (render.js põe a classe). Numa tela
+   larga vira uma coluna com a proporção da arte, no meio, e o resto escurece. */
+.sinuca.em-pe { left: calc(50% - min(100vw, 56.22vh) / 2); width: min(100vw, 56.22vh);
+  box-shadow: 0 0 0 100vmax rgba(0, 0, 0, .72); }
+:root:has(.sinuca.em-pe) body { background: #140b06 url(./assets/sinuca/fundo-h.jpg) center / cover; }
+.sinuca.em-pe { background-image: url(./assets/sinuca/fundo-v.jpg);
+  --u: min(1vw, .5622vh);
+  --card-w: calc(31 * var(--u)); --card-h: calc(16 * var(--u)); --foto: calc(13 * var(--u));
+  --bola: calc(2.05 * var(--u)); --nome: calc(2.5 * var(--u));
+  --logo-w: calc(31 * var(--u)); --card-y: calc(10 * var(--u));
+  --banner-y: calc(33 * var(--u)); }
+.sinuca.em-pe .topo { top: calc(9 * var(--u)); }
+.sinuca.em-pe .menu { left: calc(2.3 * var(--u)); top: calc(1.6 * var(--u)); width: calc(8.7 * var(--u)); }
+.sinuca.em-pe .engrenagem { right: calc(2.2 * var(--u)); top: calc(1.6 * var(--u)); width: calc(7 * var(--u)); }
+.sinuca.em-pe #som { right: calc(2.2 * var(--u)); top: calc(10.6 * var(--u)); width: calc(7 * var(--u)); }
+.sinuca.em-pe .lateral { left: calc(1.6 * var(--u)); top: 35%; width: calc(8.2 * var(--u)); gap: calc(1 * var(--u)); }
+.sinuca.em-pe .info { right: calc(1.6 * var(--u)); top: 35%; width: calc(11 * var(--u)); }
+.sinuca.em-pe .painel small { font-size: calc(1.4 * var(--u)); }
+.sinuca.em-pe .painel b { font-size: calc(2.3 * var(--u)); }
+.sinuca.em-pe #power { right: calc(1.6 * var(--u)); top: 64%; --track-h: calc(34 * var(--u)); }
+.sinuca.em-pe #spin { right: calc(1.6 * var(--u)); bottom: calc(3.4% + 13 * var(--u));
+  width: calc(12 * var(--u)); height: calc(12 * var(--u)); }
+.sinuca.em-pe .rodape { bottom: 3.4%; gap: calc(1 * var(--u)); }
+.sinuca.em-pe .rodape .modo { width: calc(35 * var(--u)); }
+.sinuca.em-pe .rodape .apostar { width: calc(38 * var(--u)); }
+.sinuca.em-pe .rodape .apostar small { font-size: calc(38 * var(--u) * .035); }
+.sinuca.em-pe .rodape .apostar b { font-size: calc(38 * var(--u) * .1); }
+.sinuca.em-pe #menu-btn { width: calc(19.5 * var(--u)); }
+
+/* ------------------------------------------------ reações (Reacoes.tsx) na mesa
+   O componente é o mesmo de todos os jogos e mora fora do .sinuca; com a mesa
+   aberta ele veste o balão da arte e abre ao lado do ícone de chat. */
+:root:has(.sinuca) { --u: min(1vw, 1.777vh); }
+:root:has(.sinuca.em-pe) { --u: min(1vw, .5622vh); --x0: calc(50vw - min(100vw, 56.22vh) / 2); }
+body:has(.sinuca) .reacoes-botao { opacity: 0; pointer-events: none; }   /* o ícone de chat da mesa clica nele */
+body:has(.sinuca) .reacoes-pessoas { display: none; }   /* a mesa tem o próprio */
+body:has(.sinuca) .reacoes-caixa { left: calc(var(--x0, 0px) + 7.4 * var(--u)); top: calc(31% + 6.1 * var(--u)); bottom: auto; }
+body:has(.sinuca.em-pe) .reacoes-caixa { left: calc(var(--x0) + 11 * var(--u)); top: calc(35% + 9.2 * var(--u)); }
+body:has(.sinuca) .reacoes-menu { position: absolute; top: 0; bottom: auto; left: 0; border-radius: calc(1.2 * var(--u));
+  background: linear-gradient(#26262b, #0d0d10); border: 1px solid rgba(255, 255, 255, .14);
+  box-shadow: 0 6px 18px rgba(0, 0, 0, .65); }
+body:has(.sinuca) .reacoes-menu::before { content: ''; position: absolute; left: -9px; top: 14px;
+  width: 10px; height: 14px; background: #1a1a1e; clip-path: polygon(100% 0, 100% 100%, 0 50%); }
+body:has(.sinuca) .reacoes-chegadas { left: calc(var(--x0, 0px) + 1.2 * var(--u)); bottom: 30%; }
+body:has(.sinuca) .reacao-balao { position: relative; border-radius: 12px;
+  background: linear-gradient(#26262b, #0d0d10); border-color: rgba(255, 255, 255, .14);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, .6); }
+body:has(.sinuca) .reacao-balao::after { content: ''; position: absolute; left: 14px; bottom: -8px;
+  width: 12px; height: 8px; background: #0d0d10; clip-path: polygon(0 0, 100% 0, 0 100%); }
+body:has(.sinuca) .reacoes-menu button { width: calc(3.8 * var(--u)); height: calc(3.8 * var(--u));
+  font-size: calc(2.4 * var(--u)); border-radius: calc(.8 * var(--u)); }
+body:has(.sinuca) .reacao-balao > span { font-size: calc(2.4 * var(--u)); }
+body:has(.sinuca) .reacao-balao > :first-child { width: calc(2.6 * var(--u)) !important; height: calc(2.6 * var(--u)) !important; }
+
+/* Boteco: placar 10% mais estreito e 19% mais baixo (0,9 × 0,9), preso no topo. */
+.sinuca .topo { transform: translateX(-50%) scale(.9, .81); transform-origin: 50% 0; }
+/* Boteco: o rodapé só tem o "Sair da mesa"; ele vai pra lateral esquerda, embaixo dos ícones. */
+.sinuca:not(.em-pe) .rodape { left: calc(1.2 * var(--u)); transform: none; bottom: 8%; }
+.sinuca:not(.em-pe) #menu-btn { width: calc(9 * var(--u)); }

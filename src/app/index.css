@@ -1,0 +1,92 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  * {
+    -webkit-tap-highlight-color: transparent;
+    user-select: none;
+  }
+  
+}
+
+/* Custom scrollbar hiding */
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+/* Glassmorphic cards */
+.glass-card {
+  background: linear-gradient(180deg, rgba(28, 20, 56, 0.85) 0%, rgba(18, 13, 38, 0.92) 100%);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(168, 85, 247, 0.16);
+}
+
+.glass-card-wallet {
+  background: linear-gradient(135deg, rgba(32, 19, 65, 0.9) 0%, rgba(18, 12, 40, 0.95) 100%);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(168, 85, 247, 0.22);
+}
+
+.glass-card-streak {
+  background: linear-gradient(135deg, rgba(36, 24, 60, 0.95) 0%, rgba(20, 14, 40, 0.95) 100%);
+  border: 1px solid rgba(245, 158, 11, 0.25);
+  box-shadow: inset 0 1px 0 rgba(251, 191, 36, 0.15);
+}
+
+.glass-card-mission {
+  background: linear-gradient(180deg, rgba(24, 17, 48, 0.9) 0%, rgba(16, 11, 34, 0.95) 100%);
+  border: 1px solid rgba(168, 85, 247, 0.14);
+}
+
+.glass-card-stat {
+  background: linear-gradient(180deg, rgba(23, 16, 46, 0.8) 0%, rgba(15, 10, 32, 0.9) 100%);
+  border: 1px solid rgba(168, 85, 247, 0.15);
+}
+
+.glow-btn-gold {
+  background: linear-gradient(180deg, #fbbf24 0%, #d97706 100%);
+  box-shadow: 0 4px 15px rgba(245, 158, 11, 0.35);
+}
+
+.glow-btn-purple {
+  background: linear-gradient(180deg, #8b5cf6 0%, #6d28d9 100%);
+  box-shadow: 0 4px 15px rgba(139, 92, 246, 0.35);
+}
+
+.glow-btn-blue {
+  background: linear-gradient(180deg, #3b82f6 0%, #1d4ed8 100%);
+  box-shadow: 0 4px 15px rgba(59, 130, 246, 0.35);
+}
+
+.badge-completed {
+  background: rgba(34, 197, 94, 0.12);
+  border: 1px solid rgba(34, 197, 94, 0.4);
+  color: #4ade80;
+}
+
+/* Shimmer animation */
+@keyframes shimmer {
+  0% { transform: translateX(-100%); }
+  100% { transform: translateX(100%); }
+}
+
+.animate-shimmer {
+  animation: shimmer 2.5s infinite;
+}
+
+/* Reação na mesa: sobe e some. Sem movimento pra quem pediu menos animação. */
+@keyframes reacao-sobe {
+  0% { opacity: 0; transform: translateY(12px) scale(0.8); }
+  12% { opacity: 1; transform: translateY(0) scale(1); }
+  80% { opacity: 1; transform: translateY(-18px); }
+  100% { opacity: 0; transform: translateY(-28px); }
+}
+.reacao-sobe { animation: reacao-sobe 2.6s ease-out forwards; }
+@media (prefers-reduced-motion: reduce) { .reacao-sobe { animation: none; } }

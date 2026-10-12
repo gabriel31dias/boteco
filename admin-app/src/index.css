@@ -1,0 +1,261 @@
+@import url("https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,200..800;1,200..800&display=swap");
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Design system copiado do painel da loja (~/loja/src/index.css) */
+
+html {
+  scrollbar-gutter: stable;
+  /* zoom padrão do sistema: vale pra login, cadastro e telas internas */
+  zoom: var(--app-zoom);
+}
+
+:root {
+  /* a loja roda em 0.8; aqui o zoom deixava a página mais larga que a tela no Chromium */
+  --app-zoom: 1;
+}
+
+
+/* 100vh/100dvh não enxerga o zoom: sem isso, tela cheia vira 80% da altura */
+.min-h-screen {
+  min-height: calc(100vh / var(--app-zoom));
+}
+
+.h-screen {
+  height: calc(100vh / var(--app-zoom));
+}
+
+/* dropdowns do Radix (select, popover, menu) são posicionados em px de tela;
+   dentro do zoom o translate seria escalado de novo e o menu saía do lugar.
+   Anula o zoom no wrapper que recebe o transform e devolve no conteúdo. */
+[data-radix-popper-content-wrapper] {
+  zoom: calc(1 / var(--app-zoom));
+}
+
+[data-radix-popper-content-wrapper] > * {
+  zoom: var(--app-zoom);
+}
+
+/* as medidas do gatilho vêm em px de tela; sem isso o menu fica mais estreito
+   que o campo depois do zoom de volta */
+[data-radix-popper-content-wrapper] [data-radix-select-viewport] {
+  min-width: calc(var(--radix-select-trigger-width) / var(--app-zoom));
+  height: calc(var(--radix-select-trigger-height) / var(--app-zoom));
+}
+
+.h-dvh {
+  height: calc(100dvh / var(--app-zoom));
+}
+
+@layer base {
+  :root {
+    --background: 270 43% 97%;
+    --foreground: 0 0% 20%;
+
+    --card: 0 0% 100%;
+    --card-foreground: 0 0% 20%;
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 0 0% 20%;
+
+    --primary: 264 92% 66%;
+    --primary-foreground: 0 0% 100%;
+
+    --secondary: 291 64% 42%;
+    --secondary-foreground: 0 0% 100%;
+
+    --muted: 0 0% 96%;
+    --muted-foreground: 0 0% 45%;
+
+    --accent: 340 82% 52%;
+    --accent-foreground: 0 0% 100%;
+
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 100%;
+
+    --success: 122 39% 49%;
+    --success-foreground: 0 0% 100%;
+
+    --warning: 36 100% 50%;
+    --warning-foreground: 0 0% 20%;
+
+    --info: 207 90% 54%;
+    --info-foreground: 0 0% 100%;
+
+    --border: 0 0% 90%;
+    --input: 0 0% 90%;
+    --ring: 340 82% 52%;
+
+    --radius: 0.75rem;
+
+    /* Toast design tokens (Figma spec) */
+    --toast-success-bg: #45bc56;
+    --toast-error-bg: #cc0854;
+    --toast-warning-bg: #eac645;
+    --toast-info-bg: #3b82f6;
+    --toast-width: 313px;
+    --toast-min-height: 64px;
+    --toast-radius: 10px;
+
+    /* Modal specific colors - #54052D */
+    --modal-title: 330 83% 18%;
+    --modal-subtitle: 330 83% 18%;
+
+    --sidebar-background: 0 0% 100%;
+    --sidebar-foreground: 0 0% 20%;
+    --sidebar-primary: 264 92% 66%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 340 82% 52%;
+    --sidebar-accent-foreground: 0 0% 100%;
+    --sidebar-border: 0 0% 90%;
+    --sidebar-ring: 340 82% 52%;
+  }
+
+  .dark {
+    --background: 237 34% 12%;
+    --foreground: 0 0% 98%;
+
+    --card: 228 7% 11%;
+    --card-foreground: 0 0% 98%;
+
+    --popover: 228 7% 13%;
+    --popover-foreground: 0 0% 98%;
+
+    --primary: 264 92% 66%;
+    --primary-foreground: 0 0% 100%;
+
+    --secondary: 291 64% 42%;
+    --secondary-foreground: 0 0% 100%;
+
+    --muted: 228 7% 16%;
+    --muted-foreground: 240 5% 60%;
+
+    --accent: 340 82% 52%;
+    --accent-foreground: 0 0% 100%;
+
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 100%;
+
+    --success: 160 84% 39%;
+    --success-foreground: 0 0% 100%;
+
+    --warning: 36 100% 50%;
+    --warning-foreground: 0 0% 20%;
+
+    --info: 207 90% 54%;
+    --info-foreground: 0 0% 100%;
+
+    --border: 228 7% 20%;
+    --input: 228 7% 16%;
+    --ring: 340 82% 52%;
+
+    /* Modal specific colors - dark mode */
+    --modal-title: 0 0% 98%;
+    --modal-subtitle: 0 0% 65%;
+
+    --sidebar-background: 228 7% 11%;
+    --sidebar-foreground: 0 0% 98%;
+    --sidebar-primary: 264 92% 66%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 340 82% 52% / 0.15;
+    --sidebar-accent-foreground: 0 0% 100%;
+    --sidebar-border: 228 7% 20%;
+    --sidebar-ring: 340 82% 52%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-[#F7F5FB] dark:bg-[#0C0E19] text-foreground;
+    font-family:
+      "Plus Jakarta Sans",
+      -apple-system,
+      BlinkMacSystemFont,
+      "Segoe UI",
+      sans-serif;
+  }
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: hsl(340 82% 52% / 0.3);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: hsl(340 82% 52% / 0.5);
+}
+
+/* Utility Classes */
+@layer utilities {
+  .gradient-primary {
+    background: linear-gradient(
+      135deg,
+      hsl(340 82% 52%) 0%,
+      hsl(291 64% 42%) 100%
+    );
+  }
+
+  .gradient-dark {
+    background: linear-gradient(
+      135deg,
+      hsl(280 45% 8%) 0%,
+      hsl(280 30% 15%) 100%
+    );
+  }
+
+  .gradient-card {
+    background: linear-gradient(
+      135deg,
+      hsl(340 82% 52% / 0.1) 0%,
+      hsl(291 64% 42% / 0.1) 100%
+    );
+  }
+
+  .glass {
+    backdrop-filter: blur(12px);
+    background: hsl(280 30% 12% / 0.6);
+  }
+
+  .shadow-glow {
+    box-shadow: 0 0 20px hsl(340 82% 52% / 0.3);
+  }
+
+  .shadow-glow-lg {
+    box-shadow: 0 0 40px hsl(340 82% 52% / 0.4);
+  }
+
+  /* Dark mode card with specific color #1B1C1F */
+  .dark-card {
+    @apply bg-white;
+  }
+
+  .dark .dark-card {
+    background: rgba(255, 255, 255, 0.03);
+  }
+
+  /* Dark mode sidebar background #1B1C1F */
+  .dark-sidebar {
+    @apply bg-sidebar;
+  }
+
+  .dark .dark-sidebar {
+    background: rgba(255, 255, 255, 0.03);
+  }
+
+}

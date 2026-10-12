@@ -1,0 +1,53 @@
+/* Cacheta: a casca é a do buraco (.bc, mesma referência 1671x941, mesmos
+   assentos, mão, painel e banner — ver buraco.css). Aqui só o que muda: a sala
+   com o feltro vermelho do kit, o logo, a vira e os botões no estilo do kit. */
+.ct { background: radial-gradient(ellipse at 50% 40%, #3a0c0c 0%, #0b0505 70%); }
+.ct .bc-palco::before { top: 0; height: 100%; background-image: url('../../assets/cacheta/fundo.webp'); }
+.ct .bc-logo { top: 59%; width: calc(330 * var(--p)); opacity: .12; }
+.ct-marca { left: 50%; top: 1%; translate: -50% 0; width: calc(250 * var(--p)); pointer-events: none; z-index: 3;
+  filter: drop-shadow(0 calc(6 * var(--p)) calc(10 * var(--p)) #000c); }
+.ct .bc-centro { top: 55%; gap: calc(34 * var(--p)); }
+.ct .bc-mao { left: 50%; }
+.ct .bc-dica { bottom: 24.5%; left: 50%; }
+
+/* vira: de lado, meio escondida embaixo do monte, como na mesa de verdade */
+.ct-monte { position: relative; display: grid; justify-items: center; }
+.ct-monte .vira { position: absolute; left: 58%; top: 6%; rotate: 90deg; z-index: -1; }
+.ct-monte .vira .pk-carta { width: calc(62 * var(--p)); }
+.ct-monte > img { width: calc(110 * var(--p)); filter: drop-shadow(0 calc(6 * var(--p)) calc(8 * var(--p)) #000a); }
+.ct-curinga { display: flex; align-items: center; gap: calc(6 * var(--p)); margin-top: calc(4 * var(--p)); }
+.ct-curinga em { font-style: normal; color: #ffd34d; }
+
+/* pontos: fichas do kit + número, embaixo do nome */
+.ct-pontos { display: flex; align-items: center; gap: calc(4 * var(--p)); padding: 0 calc(10 * var(--p)) 0 calc(4 * var(--p));
+  border-radius: 999px; background: #000c; border: 1px solid #b8913a88; font: 800 max(10px, calc(19 * var(--p))) / 1.5 'Roboto Condensed'; }
+.ct-pontos img { width: calc(24 * var(--p)); }
+.ct-pontos.perdeu { animation: ct-perdeu .9s ease-out; }
+@keyframes ct-perdeu { 0% { background: #b31212; transform: scale(1.25); } }
+.bc-assento.fora { opacity: .4; filter: grayscale(1); }
+.bc-assento.fora small::after { content: ' · fora'; color: #ff8a8a; }
+.ct-carteador { position: absolute; left: -12%; bottom: -4%; width: calc(34 * var(--p)); aspect-ratio: 1; border-radius: 50%;
+  display: grid; place-items: center; background: #fff; color: #111; font: 900 calc(18 * var(--p)) 'Roboto Condensed'; box-shadow: 0 1px 4px #000a; }
+
+/* botões: os do kit (vermelho, verde, dourado, roxo), com o texto certo pra cacheta */
+.ct .bc-acoes { gap: calc(12 * var(--p)); }
+.ct-btn { display: flex; align-items: center; justify-content: center; gap: calc(10 * var(--p));
+  width: max(112px, calc(230 * var(--p))); height: max(40px, calc(78 * var(--p))); border-radius: calc(16 * var(--p)) !important;
+  border: calc(3 * var(--p)) solid #f7c54a !important; color: #fff; font: 900 max(14px, calc(28 * var(--p))) 'Roboto Condensed';
+  letter-spacing: .04em; text-shadow: 0 2px 2px #0008; box-shadow: inset 0 calc(3 * var(--p)) 0 #ffffff55, 0 0 calc(18 * var(--p)) #ffb30055, 0 calc(6 * var(--p)) calc(10 * var(--p)) #000a; }
+.ct-btn svg { width: 1.1em; height: 1.1em; }
+.ct-btn.vermelho { background: linear-gradient(#ff4b4b, #b80d0d 70%) !important; }
+.ct-btn.verde { background: linear-gradient(#4fe06c, #12892c 70%) !important; }
+.ct-btn.dourado { background: linear-gradient(#ffe066, #e09b00 70%) !important; color: #3a2200; text-shadow: none; }
+.ct-btn.roxo { background: linear-gradient(#b867ff, #6a1fc2 70%) !important; }
+.ct-btn.cinza { background: linear-gradient(#4a4a52, #1e1e24) !important; border-color: #888 !important; width: max(112px, calc(180 * var(--p))); height: max(34px, calc(58 * var(--p))); font-size: max(12px, calc(20 * var(--p))); }
+.ct-btn.pode { animation: ct-pode 1s ease-in-out infinite; }
+@keyframes ct-pode { 50% { box-shadow: inset 0 calc(3 * var(--p)) 0 #ffffff55, 0 0 calc(40 * var(--p)) #ffd34d, 0 calc(6 * var(--p)) calc(10 * var(--p)) #000a; } }
+
+/* mostra da batida: os jogos de quem bateu */
+.ct-mostra { display: flex; flex-wrap: wrap; justify-content: center; gap: calc(12 * var(--p)); margin: calc(8 * var(--p)) 0 calc(12 * var(--p)); }
+.ct-mostra .bc-jogo { background: #ffffff10; }
+.ct-mostra .pk-carta { width: calc(60 * var(--p)); }
+.ct-mostra .pk-carta .canto { font-size: calc(20 * var(--p)); }
+.ct-mostra .pk-carta .naipe { font-size: calc(32 * var(--p)); }
+.ct-mostra .bc-jogo .pk-carta + .pk-carta { margin-left: calc(-30 * var(--p)); }

@@ -1,0 +1,146 @@
+/* Damas no estilo "Dama Aposta". O palco tem a proporção da referência — em pé
+   941x1672, deitado 1673x940 — e --p vale um pixel dela: as medidas abaixo são
+   lidas direto nas imagens. Fora do palco o cenário aparece escurecido. */
+.damas { position: fixed; inset: 0; z-index: 40; overflow: hidden; user-select: none;
+  background: linear-gradient(rgba(0, 0, 0, .78), rgba(0, 0, 0, .78)), #1a0f08 url(../../assets/damas/fundo-v.jpg) center / cover; }
+.damas .palco { position: absolute; inset: 0; margin: auto; overflow: hidden; color: #fff;
+  width: min(100vw, 56.28vh); height: min(100vh, 177.68vw); --p: calc(min(100vw, 56.28vh) / 941);
+  background: url(../../assets/damas/fundo-v.jpg) 0 0 / 100% 100%;
+  font: 800 calc(26 * var(--p)) / 1.1 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; }
+.damas .mesa { position: absolute; inset: 0; }
+.damas .palco img { display: block; }
+.damas .palco button { background: none; border: 0; color: inherit; font: inherit; padding: 0; cursor: pointer; }
+.damas .palco button:not(:disabled):active { transform: scale(.95); }
+.damas .palco > :not(.mesa) { position: absolute; z-index: 2; }
+.damas .palco > img, .damas .palco > .icone { filter: drop-shadow(0 calc(5 * var(--p)) calc(10 * var(--p)) rgba(0, 0, 0, .6)); }
+body:has(.damas) .reacoes-caixa, body:has(.damas) .reacoes-chegadas { display: none; }
+
+/* ------------------------------------------------ topo */
+.damas .saldo { left: calc(22 * var(--p)); top: calc(14 * var(--p)); width: calc(340 * var(--p)); }
+.damas .saldo img { width: 100%; }
+.damas .saldo b { position: absolute; left: 27%; right: 26%; top: 50%; translate: 0 -50%; text-align: center;
+  font-size: calc(34 * var(--p)); white-space: nowrap; }
+.damas .voltar { display: none; }
+.damas .logo { left: calc(258 * var(--p)); top: calc(168 * var(--p)); width: calc(430 * var(--p)); pointer-events: none; }
+.damas .icone { top: calc(12 * var(--p)); width: calc(96 * var(--p)); }
+.damas .icone img { width: 100%; }
+.damas .torneio { left: calc(598 * var(--p)); }
+.damas .som { left: calc(715 * var(--p)); }
+.damas .engrenagem { left: calc(830 * var(--p)); }
+.damas .palco > .ranking, .damas .palco > .menu { display: none; }
+.damas .som.mudo img { opacity: .4; }
+.damas .engrenagem { cursor: pointer; }
+.damas .som.mudo::after { content: ''; position: absolute; left: 18%; right: 18%; top: 50%; height: calc(4 * var(--p));
+  background: #ff4b4b; rotate: -40deg; border-radius: 2px; }
+
+/* ------------------------------------------------ cartões dos jogadores */
+.damas .lado { top: calc(157 * var(--p)); width: calc(268 * var(--p)); }
+.damas .lado.a { left: calc(14 * var(--p)); }
+.damas .lado.b { left: calc(658 * var(--p)); }
+.damas .cartao { --cor: #2f7bff; --fundo: #0b2a8a; position: relative; display: grid; justify-items: center;
+  border-radius: calc(26 * var(--p)); border: calc(4 * var(--p)) solid var(--cor);
+  background: linear-gradient(170deg, var(--fundo), #070b24 70%);
+  box-shadow: 0 0 calc(16 * var(--p)) var(--cor), inset 0 0 calc(16 * var(--p)) rgba(0, 0, 0, .5);
+  transition: box-shadow .3s, scale .3s; padding-bottom: calc(12 * var(--p)); }
+.damas .cartao.vermelho { --cor: #ff3232; --fundo: #8a0b12; }
+.damas .cartao.vez { scale: 1.03; box-shadow: 0 0 calc(30 * var(--p)) var(--cor), 0 0 calc(60 * var(--p)) var(--cor); }
+.damas .cartao .foto { width: 100%; height: calc(180 * var(--p)); overflow: hidden;
+  border-radius: calc(22 * var(--p)) calc(22 * var(--p)) 0 0; display: grid; place-items: end center; }
+.damas .cartao .foto img { width: 82%; height: 100%; object-fit: cover; object-position: top; }
+.damas .cartao .foto:disabled { cursor: default; }
+.damas .cartao .dados { width: 92%; display: grid; gap: calc(6 * var(--p)); }
+.damas .cartao .dados > span { display: flex; align-items: center; gap: calc(8 * var(--p)); padding: calc(4 * var(--p)) calc(10 * var(--p));
+  border-radius: calc(10 * var(--p)); background: rgba(0, 0, 0, .45); white-space: nowrap; overflow: hidden; }
+.damas .cartao .nome { font-size: calc(26 * var(--p)); text-overflow: ellipsis; }
+.damas .cartao .valor { color: #ffc93c; font-size: calc(28 * var(--p)); }
+.damas .cartao .valor i { flex: none; width: calc(28 * var(--p)); height: calc(28 * var(--p)); border-radius: 50%;
+  background: radial-gradient(circle at 35% 35%, #ffe27a, #d88a0a); box-shadow: inset 0 0 0 calc(2 * var(--p)) #a86400; }
+.damas .cartao .coroas img { width: calc(40 * var(--p)); opacity: .22; filter: saturate(0); }
+.damas .cartao .coroas img.on { opacity: 1; filter: none; }
+.damas .cartao .tempo { position: absolute; top: 100%; margin-top: calc(-4 * var(--p)); padding: calc(6 * var(--p)) calc(22 * var(--p));
+  border-radius: 0 0 calc(18 * var(--p)) calc(18 * var(--p)); background: linear-gradient(#141422, #05050c);
+  border: calc(3 * var(--p)) solid var(--cor); border-top: 0; font-size: calc(32 * var(--p)); white-space: nowrap; }
+.damas .cartao .tempo.urgente { color: #ff5a4a; }
+/* balão branco de fala saindo do cartão */
+.damas .cartao .fala { position: absolute; z-index: 5; top: calc(60 * var(--p)); padding: calc(6 * var(--p));
+  border-radius: calc(18 * var(--p)); background: #fff; color: #111; font-size: calc(40 * var(--p)); white-space: nowrap;
+  box-shadow: 0 calc(6 * var(--p)) calc(14 * var(--p)) rgba(0, 0, 0, .5); animation: fala-pop .3s cubic-bezier(.2, 1.4, .4, 1); }
+.damas .cartao .fala img { height: calc(64 * var(--p)); }
+.damas .cartao.azul .fala { left: 78%; }
+.damas .cartao.vermelho .fala { right: 78%; }
+@keyframes fala-pop { from { scale: .5; opacity: 0; } to { scale: 1; opacity: 1; } }
+@media (prefers-reduced-motion: reduce) { .damas .cartao .fala { animation: none; } }
+
+/* ------------------------------------------------ falas, aposta e botões de baixo */
+.damas .falas { left: calc(14 * var(--p)); right: calc(14 * var(--p)); top: calc(1210 * var(--p));
+  display: grid; grid-template-columns: 145fr 176fr 198fr 173fr 160fr; gap: calc(6 * var(--p)); }
+.damas .falas img { width: 100%; }
+.damas .falas button:disabled { opacity: .5; cursor: default; }
+.damas .aposta { left: calc(178 * var(--p)); top: calc(1297 * var(--p)); width: calc(584 * var(--p)); height: calc(175 * var(--p));
+  display: grid; align-content: center; justify-items: center; gap: calc(6 * var(--p));
+  border-radius: calc(24 * var(--p)); background: linear-gradient(#26262b, #0d0d10);
+  border: calc(3 * var(--p)) solid #6b4a22; box-shadow: 0 calc(8 * var(--p)) calc(18 * var(--p)) rgba(0, 0, 0, .6); }
+.damas .aposta small { font-size: calc(24 * var(--p)); color: #ddd; font-weight: 700; }
+.damas .aposta b { width: 80%; text-align: center; padding: calc(6 * var(--p)); border-radius: calc(14 * var(--p));
+  background: #050507; font-size: calc(46 * var(--p)); font-weight: 900; }
+.damas .aposta span { font-size: calc(22 * var(--p)); color: #ffc93c; }
+.damas .aposta { display: none; }        /* a referência em pé não tem: o botão verde mostra o valor */
+.damas .apostar { left: calc(180 * var(--p)); top: calc(1308 * var(--p)); width: calc(585 * var(--p)); }
+.damas .apostar img { width: 100%; }
+.damas .apostar span { position: absolute; left: 38%; right: 7%; top: 18%; bottom: 18%; display: grid; place-content: center;
+  text-align: center; line-height: 1; text-shadow: 0 calc(3 * var(--p)) 0 #0b4d12; }
+.damas .apostar small { font-size: calc(24 * var(--p)); }
+.damas .apostar b { font-size: calc(56 * var(--p)); font-weight: 900; }
+.damas .quadrado { top: calc(1322 * var(--p)); width: calc(137 * var(--p)); height: calc(134 * var(--p));
+  display: grid !important; place-content: center; justify-items: center; gap: calc(6 * var(--p));
+  border-radius: calc(22 * var(--p)) !important; background: linear-gradient(#26262b, #0d0d10) !important;
+  border: calc(3 * var(--p)) solid #3a3a40 !important; box-shadow: 0 calc(6 * var(--p)) calc(14 * var(--p)) rgba(0, 0, 0, .6); }
+.damas .quadrado svg { width: calc(50 * var(--p)); height: calc(50 * var(--p)); }
+.damas .quadrado span { font-size: calc(22 * var(--p)); }
+.damas .desistir { left: calc(28 * var(--p)); }
+.damas .desistir.confirma { border-color: #ff4b4b !important; color: #ff8a80; }
+.damas .chat { left: calc(780 * var(--p)); }
+.damas .emojis { right: calc(20 * var(--p)); bottom: calc(372 * var(--p)); z-index: 6 !important;
+  display: grid; grid-template-columns: repeat(4, 1fr); gap: calc(8 * var(--p)); padding: calc(12 * var(--p));
+  border-radius: calc(20 * var(--p)); background: linear-gradient(#26262b, #0d0d10); border: 1px solid rgba(255, 255, 255, .15); }
+.damas .emojis button { width: calc(80 * var(--p)); height: calc(80 * var(--p)); font-size: calc(48 * var(--p)); border-radius: calc(14 * var(--p)); }
+
+/* ------------------------------------------------ deitado (referência 1673x940)
+   Opcional, na engrenagem: o padrão é em pé em qualquer tela. */
+.damas.deitado { background-image: linear-gradient(rgba(0, 0, 0, .78), rgba(0, 0, 0, .78)), url(../../assets/damas/fundo-h.jpg); }
+.damas.deitado .palco { width: min(100vw, 177.98vh); height: min(100vh, 56.19vw); --p: calc(min(100vw, 177.98vh) / 1673);
+  background-image: url(../../assets/damas/fundo-h.jpg); }
+/* a referência deitada não tem o painel de aposta: o botão verde já mostra o valor */
+.damas.deitado .saldo, .damas.deitado .torneio, .damas.deitado .desistir, .damas.deitado .aposta { display: none; }
+.damas.deitado .voltar { display: grid; place-items: center; left: calc(18 * var(--p)); top: calc(12 * var(--p));
+  width: calc(96 * var(--p)); height: calc(96 * var(--p)); border-radius: 50% !important;
+  background: radial-gradient(#3a2412, #140a04) !important; border: calc(4 * var(--p)) solid #d9a441 !important; color: #fff; }
+.damas.deitado .voltar svg { width: 55%; height: 55%; }
+.damas.deitado .logo { left: calc(598 * var(--p)); top: calc(2 * var(--p)); width: calc(474 * var(--p)); }
+.damas.deitado .icone { left: calc(1575 * var(--p)); width: calc(82 * var(--p)); }
+.damas.deitado .engrenagem { top: calc(20 * var(--p)); }
+.damas.deitado .som { top: calc(112 * var(--p)); }
+.damas.deitado .palco > .menu { display: block; top: calc(205 * var(--p)); }
+
+.damas.deitado .lado { top: calc(22 * var(--p)); width: calc(392 * var(--p)); }
+.damas.deitado .lado.a { left: calc(245 * var(--p)); }
+.damas.deitado .lado.b { left: calc(1035 * var(--p)); }
+.damas.deitado .cartao { grid-template-columns: calc(170 * var(--p)) 1fr; align-items: center; padding: 0 calc(10 * var(--p)) 0 0; height: calc(175 * var(--p)); }
+.damas.deitado .cartao.vermelho { grid-template-columns: 1fr calc(170 * var(--p)); padding: 0 0 0 calc(10 * var(--p)); }
+.damas.deitado .cartao.vermelho .foto { order: 2; border-radius: 0 calc(22 * var(--p)) calc(22 * var(--p)) 0; }
+.damas.deitado .cartao .foto { height: 100%; border-radius: calc(22 * var(--p)) 0 0 calc(22 * var(--p)); }
+.damas.deitado .cartao .foto img { width: 100%; }
+.damas.deitado .cartao .dados { width: 100%; }
+.damas.deitado .cartao .tempo { left: 50%; translate: -50% 0; }
+.damas.deitado .cartao .fala { top: 105%; }
+.damas.deitado .cartao.azul .fala { left: 10%; }
+.damas.deitado .cartao.vermelho .fala { right: 10%; }
+
+.damas.deitado .falas { left: calc(28 * var(--p)); right: auto; top: calc(560 * var(--p)); width: calc(218 * var(--p));
+  grid-template-columns: 1fr; gap: calc(8 * var(--p)); padding: calc(10 * var(--p)); border-radius: calc(18 * var(--p));
+  background: rgba(10, 8, 6, .75); border: calc(3 * var(--p)) solid #6b4a22; }
+.damas.deitado .falas img { width: auto; height: calc(56 * var(--p)); }
+.damas.deitado .aposta { left: calc(400 * var(--p)); top: calc(755 * var(--p)); width: calc(510 * var(--p)); height: calc(160 * var(--p)); }
+.damas.deitado .apostar { left: calc(955 * var(--p)); top: calc(757 * var(--p)); width: calc(515 * var(--p)); z-index: 3; }
+.damas.deitado .chat { left: calc(1487 * var(--p)); top: calc(760 * var(--p)); width: calc(153 * var(--p)); height: calc(145 * var(--p)); }
+.damas.deitado .emojis { right: calc(40 * var(--p)); bottom: calc(200 * var(--p)); }

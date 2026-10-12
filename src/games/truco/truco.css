@@ -1,0 +1,154 @@
+/* Truco no estilo da arte "Truco Aposta". O palco tem a proporção exata da
+   referência (941x1672) e --p vale um pixel dela: as medidas abaixo são lidas
+   direto na imagem. Fora do palco (tela larga) o bar aparece escurecido. */
+.truco { position: fixed; inset: 0; z-index: 40; overflow: hidden; user-select: none;
+  background: linear-gradient(rgba(0, 0, 0, .8), rgba(0, 0, 0, .8)),
+    #120a06 url(../../assets/truco/fundo.jpg) center / cover; }
+.truco .palco { position: absolute; inset: 0; margin: auto; overflow: hidden; color: #fff;
+  width: min(100vw, 56.279vh); height: min(100vh, 177.68vw);
+  --p: calc(min(100vw, 56.279vh) / 941);
+  background: url(../../assets/truco/fundo.jpg) 0 0 / 100% 100%;
+  font: 800 calc(24 * var(--p)) / 1.1 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; }
+.truco .palco img { display: block; }
+.truco .palco button { background: none; border: 0; color: inherit; font: inherit; cursor: pointer; padding: 0; }
+.truco .palco button:not(:disabled):active { transform: scale(.95); }
+.truco .palco > canvas { pointer-events: auto; }
+
+/* o componente global de reações fica escondido: aqui as falas saem dos avatares */
+body:has(.truco) .reacoes-caixa, body:has(.truco) .reacoes-chegadas { display: none; }
+
+/* ------------------------------------------------ topo */
+.truco .saldo { position: absolute; left: calc(20 * var(--p)); top: calc(20 * var(--p));
+  width: calc(295 * var(--p)); height: calc(92 * var(--p)); display: flex; align-items: center;
+  gap: calc(14 * var(--p)); padding: 0 calc(14 * var(--p)); border-radius: calc(20 * var(--p));
+  background: linear-gradient(#1c130c, #0b0705); border: calc(3 * var(--p)) solid #c98a2b;
+  box-shadow: 0 0 calc(14 * var(--p)) rgba(255, 170, 40, .35), inset 0 0 calc(10 * var(--p)) rgba(0, 0, 0, .6); }
+.truco .saldo img { width: calc(64 * var(--p)); }
+.truco .saldo span { display: grid; }
+.truco .saldo small { font-size: calc(26 * var(--p)); color: #ffc93c; }
+.truco .saldo b { font-size: calc(44 * var(--p)); font-weight: 900; line-height: 1; }
+.truco .logo { position: absolute; left: calc(228 * var(--p)); top: calc(50 * var(--p)); width: calc(482 * var(--p));
+  filter: drop-shadow(0 calc(6 * var(--p)) calc(14 * var(--p)) rgba(0, 0, 0, .7)); pointer-events: none; }
+.truco .canto { position: absolute; top: calc(30 * var(--p)); width: calc(64 * var(--p)); }
+.truco .canto img { width: 100%; }
+.truco .engrenagem { left: calc(697 * var(--p)); }
+.truco .som { left: calc(780 * var(--p)); }
+.truco .menu { left: calc(862 * var(--p)); }
+.truco .som.mudo img { opacity: .4; }
+.truco .som.mudo::after { content: ''; position: absolute; left: 18%; right: 18%; top: 50%; height: calc(4 * var(--p));
+  background: #ff4b4b; transform: rotate(-40deg); border-radius: 2px; }
+.truco .menu-aberto { position: absolute; right: calc(18 * var(--p)); top: calc(104 * var(--p)); z-index: 5;
+  width: calc(330 * var(--p)); padding: calc(16 * var(--p)); display: grid; gap: calc(10 * var(--p));
+  border-radius: calc(16 * var(--p)); background: linear-gradient(#26262b, #0d0d10);
+  border: 1px solid rgba(255, 255, 255, .15); box-shadow: 0 calc(8 * var(--p)) calc(24 * var(--p)) rgba(0, 0, 0, .7); }
+.truco .menu-aberto button { padding: calc(14 * var(--p)); border-radius: calc(12 * var(--p)) !important;
+  background: linear-gradient(#e0333a, #9b1016) !important; font-size: calc(28 * var(--p)); font-weight: 900; }
+.truco .menu-aberto small { font-size: calc(19 * var(--p)); font-weight: 600; color: #bbb; }
+
+/* ------------------------------------------------ jogadores (--x/--y em pixels da arte) */
+.truco .jogador { position: absolute; left: calc(var(--x) * var(--p)); top: calc(var(--y) * var(--p));
+  transform: translate(-50%, -50%); width: calc(140 * var(--p)); display: grid; justify-items: center;
+  gap: calc(6 * var(--p)); --cor: #5fd3ff; --brilho: rgba(80, 200, 255, .6); }
+.truco .jogador.deles { --cor: #ff8a5c; --brilho: rgba(255, 110, 60, .6); }
+.truco .jogador .foto { position: relative; width: calc(140 * var(--p)); height: calc(140 * var(--p));
+  border-radius: calc(24 * var(--p)); overflow: hidden; border: calc(4 * var(--p)) solid var(--cor);
+  box-shadow: 0 0 calc(12 * var(--p)) var(--brilho), 0 calc(6 * var(--p)) calc(14 * var(--p)) rgba(0, 0, 0, .6);
+  transition: box-shadow .3s, transform .3s; cursor: pointer; }
+.truco .jogador .foto:disabled { cursor: default; }
+.truco .jogador .foto img { width: 100%; height: 100%; object-fit: cover; }
+.truco .jogador .nome { position: absolute; left: 0; right: 0; bottom: 0; padding: calc(6 * var(--p)) calc(8 * var(--p));
+  display: flex; align-items: center; gap: calc(8 * var(--p)); font-size: calc(24 * var(--p));
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  background: linear-gradient(transparent, rgba(0, 0, 0, .85) 35%); text-shadow: 0 1px 2px #000; }
+.truco .jogador .nome i { flex: none; width: calc(18 * var(--p)); height: calc(18 * var(--p)); border-radius: 50%;
+  background: #2ee55a; border: calc(2 * var(--p)) solid #0a2a10; }
+.truco .jogador .etiqueta { padding: calc(6 * var(--p)) calc(18 * var(--p)); border-radius: calc(12 * var(--p));
+  background: linear-gradient(#1c1a17, #0a0907); border: 1px solid rgba(255, 255, 255, .12);
+  color: #ffc93c; font-size: calc(24 * var(--p)); white-space: nowrap; }
+.truco .jogador.vez .foto { transform: scale(1.06);
+  box-shadow: 0 0 calc(22 * var(--p)) var(--cor), 0 0 calc(44 * var(--p)) var(--brilho); }
+.truco .jogador .seg { position: absolute; top: calc(6 * var(--p)); right: calc(6 * var(--p));
+  padding: calc(2 * var(--p)) calc(8 * var(--p)); border-radius: calc(10 * var(--p));
+  background: rgba(0, 0, 0, .75); font-size: calc(22 * var(--p)); color: #ffe27a; }
+.truco .jogador .seg.urgente { color: #ff5a4a; }
+
+/* balão branco de fala, como os "Bora?" / "Truco!" da arte */
+.truco .fala { position: absolute; z-index: 3; padding: calc(12 * var(--p)) calc(24 * var(--p));
+  border-radius: calc(18 * var(--p)); background: linear-gradient(#ffffff, #e9e9e9); color: #111;
+  font-size: calc(30 * var(--p)); font-weight: 800; white-space: nowrap;
+  box-shadow: 0 calc(6 * var(--p)) calc(14 * var(--p)) rgba(0, 0, 0, .5);
+  animation: fala-pop .3s cubic-bezier(.2, 1.4, .4, 1); }
+.truco .fala img { width: calc(72 * var(--p)); }
+.truco .fala::after { content: ''; position: absolute; width: calc(22 * var(--p)); height: calc(18 * var(--p)); background: #ececec; }
+.truco .fala.esq { right: calc(100% + 18 * var(--p)); top: calc(40 * var(--p)); }
+.truco .fala.esq::after { right: calc(18 * var(--p)); bottom: calc(-14 * var(--p)); clip-path: polygon(0 0, 100% 0, 100% 100%); }
+.truco .fala.dir { left: calc(100% + 18 * var(--p)); top: calc(40 * var(--p)); }
+.truco .fala.dir::after { left: calc(18 * var(--p)); bottom: calc(-14 * var(--p)); clip-path: polygon(0 0, 100% 0, 0 100%); }
+.truco .fala.cima { bottom: calc(100% + 16 * var(--p)); left: 50%; translate: -50% 0; }
+.truco .fala.cima::after { left: calc(30 * var(--p)); bottom: calc(-14 * var(--p)); clip-path: polygon(0 0, 100% 0, 0 100%); }
+@keyframes fala-pop { from { scale: .6; opacity: 0; } to { scale: 1; opacity: 1; } }
+
+/* ------------------------------------------------ meio da mesa */
+.truco .placa { position: absolute; left: calc(470 * var(--p)); top: calc(760 * var(--p)); width: calc(400 * var(--p));
+  translate: -50% -50%; z-index: 4; pointer-events: none;
+  filter: drop-shadow(0 calc(10 * var(--p)) calc(20 * var(--p)) rgba(0, 0, 0, .7));
+  animation: placa-cai .5s cubic-bezier(.2, 1.5, .4, 1); }
+@keyframes placa-cai { from { scale: 2.2; opacity: 0; rotate: -8deg; } to { scale: 1; opacity: 1; rotate: 0deg; } }
+.truco .aviso-mesa { position: absolute; left: calc(470 * var(--p)); top: calc(760 * var(--p)); translate: -50% -50%;
+  z-index: 4; padding: calc(14 * var(--p)) calc(30 * var(--p)); border-radius: calc(18 * var(--p));
+  background: linear-gradient(#26262b, #0d0d10); border: 1px solid rgba(255, 255, 255, .15);
+  font-size: calc(32 * var(--p)); white-space: nowrap; pointer-events: none;
+  box-shadow: 0 calc(8 * var(--p)) calc(20 * var(--p)) rgba(0, 0, 0, .65); animation: fala-pop .3s; }
+.truco .vez-de { position: absolute; left: calc(470 * var(--p)); top: calc(992 * var(--p)); translate: -50% -50%;
+  z-index: 2; display: grid; justify-items: center; padding: calc(6 * var(--p)) calc(20 * var(--p));
+  border-radius: 999px; background: rgba(8, 8, 10, .82); border: 1px solid rgba(255, 255, 255, .12);
+  font-size: calc(21 * var(--p)); color: #cfcfcf; white-space: nowrap; letter-spacing: .5px; pointer-events: none; }
+.truco .vez-de.minha { color: #6dff8d; border-color: rgba(80, 255, 120, .55); box-shadow: 0 0 calc(12 * var(--p)) rgba(80, 255, 120, .35); }
+.truco .vez-de small { font-size: calc(19 * var(--p)); font-weight: 600; color: #eee; }
+@media (prefers-reduced-motion: reduce) {
+  .truco .placa, .truco .fala, .truco .aviso-mesa { animation: none; }
+}
+
+/* ------------------------------------------------ painéis ao lado da mão */
+.truco .painel { position: absolute; top: calc(1115 * var(--p)); height: calc(90 * var(--p));
+  display: grid; align-content: center; justify-items: center; gap: calc(4 * var(--p));
+  border-radius: calc(16 * var(--p)); background: linear-gradient(#1c1a17, #0a0907);
+  border: 1px solid rgba(255, 255, 255, .14); box-shadow: 0 calc(6 * var(--p)) calc(14 * var(--p)) rgba(0, 0, 0, .6); }
+.truco .painel small { font-size: calc(19 * var(--p)); color: #d8d8d8; letter-spacing: .5px; white-space: nowrap; }
+.truco .painel b { display: flex; align-items: center; gap: calc(8 * var(--p)); font-size: calc(34 * var(--p)); font-weight: 900; }
+.truco .painel b img { width: calc(36 * var(--p)); }
+.truco .painel em { font-style: normal; color: #ffc93c; }
+.truco .aposta { left: calc(22 * var(--p)); width: calc(205 * var(--p)); }
+.truco .placar { left: calc(730 * var(--p)); width: calc(190 * var(--p)); }
+.truco .vazas { display: flex; gap: calc(6 * var(--p)); }
+.truco .vazas i { width: calc(14 * var(--p)); height: calc(14 * var(--p)); border-radius: 50%; background: #2c2c2c; }
+.truco .vazas i.nossa { background: #2ee55a; }
+.truco .vazas i.deles { background: #ff5a4a; }
+.truco .vazas i.empate { background: #9aa3ad; }
+
+/* ------------------------------------------------ botões de ação (arte, texto em cima) */
+.truco .botoes { position: absolute; left: calc(18 * var(--p)); top: calc(1236 * var(--p));
+  width: calc(905 * var(--p)); height: calc(128 * var(--p)); display: grid;
+  grid-template-columns: 195fr 167fr 167fr 167fr 167fr; gap: calc(10 * var(--p)); }
+.truco .acao { position: relative; transition: filter .2s; }
+.truco .acao img { width: 100%; height: 100%; object-fit: fill; }
+.truco .acao span { position: absolute; inset: 0; display: grid; place-content: center; text-align: center;
+  line-height: 1; text-shadow: 0 calc(2 * var(--p)) 0 rgba(0, 0, 0, .45), 0 0 calc(8 * var(--p)) rgba(0, 0, 0, .35); }
+.truco .acao small { font-size: calc(26 * var(--p)); font-weight: 900; }
+.truco .acao b { font-size: calc(44 * var(--p)); font-weight: 900; }
+.truco .acao span small + b { margin-top: calc(2 * var(--p)); }
+.truco .acao:disabled { filter: brightness(.42) saturate(.55); cursor: default; }
+
+/* ------------------------------------------------ falas prontas e emojis */
+.truco .falas { position: absolute; left: calc(22 * var(--p)); right: calc(22 * var(--p)); top: calc(1398 * var(--p));
+  display: grid; grid-template-columns: repeat(7, 1fr); gap: calc(10 * var(--p)); }
+.truco .falas button { height: calc(62 * var(--p)); border-radius: calc(12 * var(--p)) !important;
+  background: linear-gradient(#232326, #0e0e10) !important; border: 1px solid rgba(255, 255, 255, .14) !important;
+  font-size: calc(24 * var(--p)); font-weight: 700; }
+.truco .emojis { position: absolute; left: 0; right: 0; top: calc(1488 * var(--p));
+  display: flex; justify-content: center; gap: calc(18 * var(--p)); }
+.truco .emojis button { width: calc(82 * var(--p)); height: calc(82 * var(--p)); border-radius: 50% !important;
+  display: grid; place-items: center; background: linear-gradient(#232326, #0e0e10) !important;
+  border: 1px solid rgba(255, 255, 255, .14) !important; }
+.truco .emojis img { width: calc(58 * var(--p)); }
+.truco .falas button:disabled, .truco .emojis button:disabled { opacity: .5; cursor: default; }

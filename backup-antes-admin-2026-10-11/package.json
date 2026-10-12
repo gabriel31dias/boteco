@@ -1,0 +1,50 @@
+{
+  "name": "boteco-online",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "lint": "oxlint",
+    "preview": "vite preview",
+    "server": "HTTP=1 node server/index.js",
+    "server:velha": "HTTP=1 JOGO=velha node server/index.js",
+    "server:domino": "HTTP=1 JOGO=domino node server/index.js",
+    "server:truco": "HTTP=1 JOGO=truco node server/index.js",
+    "server:damas": "HTTP=1 JOGO=damas node server/index.js",
+    "server:truco-duplas": "HTTP=1 JOGO=truco-duplas node server/index.js",
+    "server:domino-duplas": "HTTP=1 JOGO=domino-duplas node server/index.js",
+    "server:chat": "HTTP=1 JOGO=chat node server/index.js",
+    "server:poker": "HTTP=1 JOGO=poker node server/index.js",
+    "server:buraco": "HTTP=1 JOGO=buraco node server/index.js",
+    "server:buraco-duplas": "HTTP=1 JOGO=buraco-duplas node server/index.js",
+    "server:cacheta": "HTTP=1 JOGO=cacheta node server/index.js",
+    "servers": "npm run server & sleep 2 && (npm run server:velha & npm run server:domino & npm run server:truco & npm run server:damas & npm run server:truco-duplas & npm run server:domino-duplas & npm run server:chat & npm run server:poker & npm run server:buraco & npm run server:buraco-duplas & npm run server:cacheta)",
+    "test": "node src/cpf.test.mjs && node src/physics/test-physics.mjs && node src/test-bolas.mjs && node src/game/test-rack.mjs && node src/games/truco/engine/test-engine.mjs && node src/games/domino/test-regras.mjs && node src/games/poker/test-regras.mjs && node src/games/poker/test-mesa.mjs && node src/games/poker/test-ui.mjs && node src/games/buraco/test-regras.mjs && node src/games/buraco/test-ui.mjs && node server/test-model.mjs && node server/test-velha.mjs && node server/test-domino.mjs && node server/test-truco.mjs && node server/test-damas.mjs && node server/test-poker-arbitro.mjs && node server/test-poker.mjs && node server/test-buraco.mjs && node src/games/cacheta/test-regras.mjs && node src/games/cacheta/test-ui.mjs && node server/test-cacheta.mjs"
+  },
+  "dependencies": {
+    "canvas-confetti": "^1.9.4",
+    "clsx": "^2.1.1",
+    "framer-motion": "^14.0.0",
+    "lucide-react": "^0.475.0",
+    "nodemailer": "^9.1.1",
+    "phaser": "^3.90.0",
+    "pixi.js": "^8.22.0",
+    "react": "^19.2.8",
+    "react-dom": "^19.2.8",
+    "socket.io": "^4.8.4",
+    "socket.io-client": "^4.8.4",
+    "tailwind-merge": "^3.7.0"
+  },
+  "devDependencies": {
+    "@types/react": "^19.2.18",
+    "@types/react-dom": "^19.2.7",
+    "@vitejs/plugin-react": "^6.1.1",
+    "autoprefixer": "^10.6.1",
+    "oxlint": "^1.81.0",
+    "postcss": "^8.5.28",
+    "tailwindcss": "^3.4.19",
+    "vite": "^8.3.0"
+  }
+}
