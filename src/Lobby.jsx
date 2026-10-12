@@ -26,16 +26,17 @@ const MODOS = {
 }
 const base = (id) => id.replace(/-duplas$/, '')
 /** Jogos com cor (tanque): a escolhida fica guardada pra próxima vez. */
-const TOM_COR = { azul: '#3b8cff', vermelho: '#ff4646', verde: '#3ddc5a', amarelo: '#ffc53d', roxo: '#b86bff' }
-const NOME_COR = { azul: 'Azul', vermelho: 'Vermelho', verde: 'Verde', amarelo: 'Amarelo', roxo: 'Roxo' }
+const TOM_COR = { azul: '#3b8cff', vermelho: '#ff4646', verde: '#3ddc5a', amarelo: '#ffc53d', roxo: '#b86bff', rosa: '#ff6fc8' }
+const NOME_COR = { azul: 'Azul', vermelho: 'Vermelho', verde: 'Verde', amarelo: 'Amarelo', roxo: 'Roxo', rosa: 'Rosa' }
 // figurinha de cada escolha, pra sala de espera: o rato parado / o tanque da cor
 const FIG = (() => {
   const g = { ...import.meta.glob('./assets/ratos/*-parado.webp', { eager: true, import: 'default' }),
-    ...import.meta.glob('./assets/tanque/tanque-*.webp', { eager: true, import: 'default' }) }
-  const f = { ratos: {}, tanque: {} }
+    ...import.meta.glob('./assets/tanque/tanque-*.webp', { eager: true, import: 'default' }),
+    ...import.meta.glob('./assets/capivara/*-anda-0.webp', { eager: true, import: 'default' }) }
+  const f = { ratos: {}, tanque: {}, capivara: {} }
   for (const [k, url] of Object.entries(g)) {
-    const m = /ratos\/(\w+)-parado|tanque\/tanque-(\w+)\./.exec(k)
-    if (m) f[m[1] ? 'ratos' : 'tanque'][m[1] ?? m[2]] = url
+    const m = /ratos\/(\w+)-parado|tanque\/tanque-(\w+)\.|capivara\/(\w+)-anda-0/.exec(k)
+    if (m) f[m[1] ? 'ratos' : m[2] ? 'tanque' : 'capivara'][m[1] ?? m[2] ?? m[3]] = url
   }
   return f
 })()
@@ -206,7 +207,7 @@ export default function Lobby({ abrir, onClose }) {
 
   const titulo = start ? 'Oponente encontrado!'
     : convidado ? `${convidado} entrou`
-    : cores && mesa && !mesa.players.find((p) => p.id === profile.id)?.cor ? 'Escolha seu rato!'.replace('rato', info?.nomesCores ? 'rato' : 'tanque')
+    : cores && mesa && !mesa.players.find((p) => p.id === profile.id)?.cor ? (jogo === 'capivara' ? 'Escolha sua capivara!' : info?.nomesCores ? 'Escolha seu rato!' : 'Escolha seu tanque!')
     : cores && mesa && mesa.players.length >= (mesa.minimo ?? 2) && mesa.players.some((p) => !p.cor) ? 'Esperando todos escolherem…'
     : mesa && !mesa.duplas && mesa.jogadores > 2 ? (abreEm !== null ? `Começa em ${abreEm}s` : 'Esperando jogadores…')
     : mesa && mesa.jogadores > 2 ? `Faltam ${mesa.jogadores - mesa.players.length} jogador${mesa.jogadores - mesa.players.length === 1 ? '' : 'es'}`
@@ -349,7 +350,7 @@ export default function Lobby({ abrir, onClose }) {
 
             {cores && mesa && !start && (
               <div className="lb-escolha">
-                <b>{info?.nomesCores ? 'Escolha seu rato' : 'Escolha sua cor'}</b>
+                <b>{jogo === 'capivara' ? 'Escolha sua capivara' : info?.nomesCores ? 'Escolha seu rato' : 'Escolha sua cor'}</b>
                 <div>
                   {cores.map((c) => {
                     const dono = mesa.players.find((p) => p.cor === c)

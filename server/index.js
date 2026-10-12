@@ -24,6 +24,7 @@ import * as buraco from './jogos/buraco.js';
 import * as cacheta from './jogos/cacheta.js';
 import * as tanque from './jogos/tanque.js';
 import * as ratos from './jogos/ratos.js';
+import * as capivara from './jogos/capivara.js';
 
 /** Quanto tempo o app pode ficar fora da tela, em partida, antes do W.O. */
 export const AUSENCIA_MS = Number(process.env.AUSENCIA_MS) || 30_000;
@@ -49,7 +50,7 @@ const perfil = (u) => ({
 const brl = (centavos) => `R$ ${(centavos / 100).toFixed(2).replace('.', ',')}`;
 
 /** Cada processo serve um jogo só. O árbitro de tabuleiro fica aqui. */
-const ARBITROS = { velha, domino, truco, damas, 'truco-duplas': truco, 'domino-duplas': domino, poker, buraco, 'buraco-duplas': buraco, cacheta, tanque, ratos };
+const ARBITROS = { velha, domino, truco, damas, 'truco-duplas': truco, 'domino-duplas': domino, poker, buraco, 'buraco-duplas': buraco, cacheta, tanque, ratos, capivara };
 
 export function attach(io, jogoId = JOGO_PADRAO) {
   const jogo = jogoDe(jogoId);

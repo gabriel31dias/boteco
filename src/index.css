@@ -346,8 +346,8 @@ body:has(.tanque) .reacoes-chegadas { bottom: 64px; left: 112px; }
 }
 
 /* Ratos em Guerra: reações no mesmo canto do tanque (ao lado de sair/som do canvas) */
-body:has(.ratos) .reacoes-caixa { left: 112px; bottom: 12px; flex-direction: row; }
-body:has(.ratos) .reacoes-chegadas { bottom: 64px; left: 112px; }
+body:has(.ratos) .reacoes-caixa, body:has(.capivara) .reacoes-caixa { left: 112px; bottom: 12px; flex-direction: row; }
+body:has(.ratos) .reacoes-chegadas, body:has(.capivara) .reacoes-chegadas { bottom: 64px; left: 112px; }
 @media (orientation: portrait) {
   body:has(.ratos) .reacoes-caixa { left: 12px; top: 112px; bottom: auto; flex-direction: column; }
   body:has(.ratos) .reacoes-caixa > button { rotate: 90deg; }

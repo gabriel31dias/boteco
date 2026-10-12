@@ -21,6 +21,7 @@ const proxy = {
   '/ws/cacheta': { target: alvo(3012), ws: true },
   '/ws/tanque': { target: alvo(3014), ws: true },
   '/ws/ratos': { target: alvo(3015), ws: true },
+  '/ws/capivara': { target: alvo(3016), ws: true },
   '/api': { target: alvo(3001) },
 }
 

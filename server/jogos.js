@@ -154,6 +154,19 @@ export const JOGOS = {
     cores: ['azul', 'vermelho', 'verde', 'roxo'],
     nomesCores: { azul: 'Zé Boné · fuzil', vermelho: 'Bolota · escopeta', verde: 'Sargento · sniper', roxo: 'Punk · metralhadora' },
   },
+  // Arena tropical vista de cima, tempo real (ver server/jogos/capivara.js).
+  capivara: {
+    id: 'capivara',
+    nome: 'Capivara Pistola',
+    subtitulo: '2 a 4 · todo mundo contra todo mundo · 10 abates leva',
+    porta: 3016,
+    arbitro: 'servidor',
+    minJogadores: 2,
+    maxJogadores: 4,
+    esperaMs: 10_000,
+    cores: ['vermelho', 'azul', 'verde', 'rosa'],
+    nomesCores: { vermelho: 'Bandana · frigideira', azul: "Surfista · pistola d'água", verde: 'Sargento · coco-granada', rosa: 'Bailarina · melancia' },
+  },
 };
 
 export const JOGO_PADRAO = 'sinuca';
