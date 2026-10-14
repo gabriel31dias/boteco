@@ -24,6 +24,11 @@ export const JOGOS = {
     porta: 3001,
     arbitro: 'consenso',
   },
+  // Variantes da mesma mesa (src/game/modos.js): mesma física, regras próprias, consenso igual.
+  sinuca9: { id: 'sinuca9', nome: 'Bola 9', subtitulo: 'toque sempre na menor · a 9 encaçapada ganha', porta: 3026, arbitro: 'consenso' },
+  sinuca10: { id: 'sinuca10', nome: 'Bola 10', subtitulo: 'toque na menor · a 10 só vale por último', porta: 3027, arbitro: 'consenso' },
+  sinucabr: { id: 'sinucabr', nome: 'Sinuca brasileira', subtitulo: 'bola da vez · 1 a 7 pontos · mais pontos ganha', porta: 3028, arbitro: 'consenso' },
+  snooker: { id: 'snooker', nome: 'Snooker', subtitulo: '6 vermelhas · vermelha e cor · mais pontos ganha', porta: 3029, arbitro: 'consenso' },
   velha: {
     id: 'velha',
     nome: 'Jogo da velha',
@@ -40,6 +45,48 @@ export const JOGOS = {
     porta: 3004,
     arbitro: 'servidor',
     tempoJogada: 20,
+  },
+  // Forca no Velho Oeste: duelo, mesma palavra, cada erro arranca um pedaço (ver server/jogos/forca.js).
+  forca: {
+    id: 'forca',
+    nome: 'Forca',
+    subtitulo: '1 contra 1 · mesma palavra · quem completar primeiro leva',
+    porta: 3022,
+    arbitro: 'servidor',
+  },
+  // Mini-golfe tropical, 3 buracos, todo mundo ao mesmo tempo (ver server/jogos/golfe.js).
+  golfe: {
+    id: 'golfe',
+    nome: 'Mini-golfe Tropical',
+    subtitulo: '2 a 4 · 3 buracos · menos tacadas leva',
+    porta: 3023,
+    arbitro: 'servidor',
+    minJogadores: 2,
+    maxJogadores: 4,
+    esperaMs: 10_000,
+  },
+  // Cartas no estilo UNO, sem a marca (ver server/jogos/ultima.js).
+  ultima: {
+    id: 'ultima',
+    nome: 'Última Carta',
+    subtitulo: '2 a 4 · zere a mão primeiro · grite ÚLTIMA!',
+    porta: 3024,
+    arbitro: 'servidor',
+    tempoJogada: 25,
+    minJogadores: 2,
+    maxJogadores: 4,
+    esperaMs: 10_000,
+  },
+  // Tiro nos patos, tempo real, 4 rodadas (ver server/jogos/patos.js).
+  patos: {
+    id: 'patos',
+    nome: 'Caçada de Patos',
+    subtitulo: '2 a 4 · toque no pato · mais pontos leva',
+    porta: 3025,
+    arbitro: 'servidor',
+    minJogadores: 2,
+    maxJogadores: 4,
+    esperaMs: 10_000,
   },
   // Mesmo árbitro do truco, com 4 assentos: 0 e 2 contra 1 e 3. Processo
   // próprio pra ter fila própria — e um bug aqui não derruba o 1×1.
@@ -192,6 +239,51 @@ export const JOGOS = {
     esperaMs: 10_000,
     cores: ['branco', 'preto', 'amarelo', 'vermelho'],
     nomesCores: { branco: 'Branquela · cutelo', preto: 'Pretinha · facão', amarelo: 'Pintada · forcado', vermelho: 'Ruiva · porrete de prego' },
+  },
+  // Cobrinha no templo, tempo real (ver server/jogos/cobras.js): a maior no fim do tempo leva.
+  cobras: {
+    id: 'cobras',
+    nome: 'Cobras do Templo',
+    subtitulo: '2 a 4 · come fruta, cresce, a maior leva',
+    porta: 3019,
+    arbitro: 'servidor',
+    minJogadores: 2,
+    maxJogadores: 4,
+    esperaMs: 10_000,
+    cores: ['verde', 'vermelho', 'azul', 'amarelo', 'rosa', 'roxo', 'preto', 'arcoiris'],
+    nomesCores: { verde: 'Jararaca · verde', vermelho: 'Coral · vermelha', azul: 'Anil · azul', amarelo: 'Sucuri · amarela',
+      rosa: 'Chiclete · rosa', roxo: 'Viúva · roxa', preto: 'Lava · preta', arcoiris: 'Arco-íris · rara' },
+  },
+  // Duelo de arco nas ilhas flutuantes, tempo real (ver server/jogos/arqueiros.js).
+  arqueiros: {
+    id: 'arqueiros',
+    nome: 'Arqueiros do Céu',
+    subtitulo: '2 a 4 · puxa, mira e crava · se esconde atrás da paliçada',
+    porta: 3020,
+    arbitro: 'servidor',
+    minJogadores: 2,
+    maxJogadores: 4,
+    esperaMs: 10_000,
+    cores: ['azul', 'vermelho', 'verde', 'roxo'],
+    nomesCores: { azul: 'Celeste · azul', vermelho: 'Brasa · vermelho', verde: 'Musgo · verde', roxo: 'Sombra · roxo' },
+  },
+  // Futebol de botão FLA × VAS, 1 contra 1, por turnos (ver server/jogos/botao.js).
+  botao: {
+    id: 'botao',
+    nome: 'Futebol de Botão',
+    subtitulo: '1 contra 1 · FLA × VAS · 3 gols ou 5 minutos',
+    porta: 3030,
+    arbitro: 'servidor',
+    tempoJogada: 20,
+  },
+  // Batalha naval 1 contra 1, por turnos (ver server/jogos/naval.js).
+  naval: {
+    id: 'naval',
+    nome: 'Batalha Naval',
+    subtitulo: '1 contra 1 · acertou, atira de novo · afunde a frota inteira',
+    porta: 3021,
+    arbitro: 'servidor',
+    tempoJogada: 20,
   },
 };
 

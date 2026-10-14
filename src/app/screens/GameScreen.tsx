@@ -65,6 +65,7 @@ export const GameScreen: React.FC = () => {
         net,
         seed: match.seed,
         seat: match.seat,
+        modo: match.game,   // sinuca (bola 8), sinuca9, sinuca10, sinucabr, snooker
         players: match.players,
         onFinish: (f: Fim) => setFim(f),
         onExit: () => sair(),

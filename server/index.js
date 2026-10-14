@@ -27,6 +27,14 @@ import * as ratos from './jogos/ratos.js';
 import * as capivara from './jogos/capivara.js';
 import * as psicopatas from './jogos/psicopatas.js';
 import * as galinhas from './jogos/galinhas.js';
+import * as cobras from './jogos/cobras.js';
+import * as arqueiros from './jogos/arqueiros.js';
+import * as naval from './jogos/naval.js';
+import * as forca from './jogos/forca.js';
+import * as golfe from './jogos/golfe.js';
+import * as ultima from './jogos/ultima.js';
+import * as patos from './jogos/patos.js';
+import * as botao from './jogos/botao.js';
 
 /** Quanto tempo o app pode ficar fora da tela, em partida, antes do W.O. */
 export const AUSENCIA_MS = Number(process.env.AUSENCIA_MS) || 30_000;
@@ -56,7 +64,7 @@ const perfil = (u) => ({
 const brl = (centavos) => `R$ ${(centavos / 100).toFixed(2).replace('.', ',')}`;
 
 /** Cada processo serve um jogo só. O árbitro de tabuleiro fica aqui. */
-const ARBITROS = { velha, domino, truco, damas, 'truco-duplas': truco, 'domino-duplas': domino, poker, buraco, 'buraco-duplas': buraco, cacheta, tanque, ratos, capivara, psicopatas, galinhas };
+const ARBITROS = { velha, domino, truco, damas, 'truco-duplas': truco, 'domino-duplas': domino, poker, buraco, 'buraco-duplas': buraco, cacheta, tanque, ratos, capivara, psicopatas, galinhas, cobras, arqueiros, naval, forca, golfe, ultima, patos, botao };
 
 export function attach(io, jogoId = JOGO_PADRAO) {
   const jogo = jogoDe(jogoId);

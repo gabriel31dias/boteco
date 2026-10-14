@@ -152,9 +152,9 @@ export class Renderer {
     }
     for (const b of balls) {
       let s = this.sprites.get(b);
-      if (!s || s.bola.n !== b.number) {
+      if (!s || s.bola.n !== b.number || s.bola.visual !== (b.visual ?? null)) {
         s?.sprite.destroy({ texture: true }); s?.shadow.destroy();
-        const bola = new Bola(b.number);
+        const bola = new Bola(b.number, b.visual ?? null);
         const sprite = new Sprite(Texture.from(bola.canvas));
         sprite.anchor.set(0.5);
         sprite.setSize(u(R_VIS * 2.2));

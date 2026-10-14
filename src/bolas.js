@@ -135,16 +135,18 @@ export function mapaDeLuz(giro = 0) {
 }
 
 export class Bola {
-  constructor(n) {
+  /** `visual` (snooker, sinuca brasileira): { cor, lisa } — bola de uma cor só, sem número. */
+  constructor(n, visual = null) {
     this.n = n;
+    this.visual = visual;
     this.M = orientacaoInicial();
     this.canvas = document.createElement('canvas');
     this.canvas.width = this.canvas.height = TAM;
     this.ctx = this.canvas.getContext('2d');
     this.img = this.ctx.createImageData(TAM, TAM);
-    this.cor = n === 0 ? [246, 243, 234] : hex(CORES[n - 1]);
-    this.listrada = n > 8;
-    this.glifo = n > 0 ? glifo(n) : null;
+    this.cor = n === 0 ? [246, 243, 234] : hex(visual?.cor ?? CORES[(n - 1) % 15]);
+    this.listrada = !visual && n > 8;
+    this.glifo = n > 0 && !visual?.lisa ? glifo(n) : null;
   }
 
   desenhar(mapa) {
@@ -168,9 +170,9 @@ export class Bola {
         // fundo: cor, ou tampa branca da listrada
         const tf = this.listrada ? liso(Math.abs(y) - FAIXA) : 0;
         r = mix(cr, 246, tf); g = mix(cg, 244, tf); b = mix(cb, 238, tf);
-        const ta = liso(ax - ANEL);                          // filete na borda do disco
+        const ta = gl ? liso(ax - ANEL) : 0;                // filete na borda do disco (bola lisa: sem disco)
         r = mix(r, 200, ta); g = mix(g, 200, ta); b = mix(b, 200, ta);
-        const td = liso(ax - DISCO);
+        const td = gl ? liso(ax - DISCO) : 0;
         if (td > 0) {
           // disco branco com o número; o glifo é amostrado no plano tangente
           const s = x > 0 ? 1 : -1;

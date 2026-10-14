@@ -74,10 +74,13 @@ export const ConexaoPerdida: React.FC<{ matchId: unknown }> = ({ matchId }) => {
       if (!definitivo) conferir();   // voltou? confere de novo
     }
 
-    const offFim = net.on('settled', () => {
+    const offFim = net.on('settled', (s?: { desistiu?: boolean }) => {
       acabou = true;
       if (relogio) clearInterval(relogio);
       setAviso(null);
+      // o servidor me tirou (app em segundo plano demais) e a tela segue aberta:
+      // sem isso a mesa ficava congelada sem resultado. Quem clicou em sair já saiu da tela.
+      if (s?.desistiu) { setMatch(null); showNotification('⏱️ Você ficou fora do jogo e saiu da partida'); }
     });
     const offCaiu = net.on('caiu', () => alarme(true));            // o socket caiu: o servidor já me tirou
     const offInstavel = net.on('instavel', () => alarme(false));   // tempo real parou de receber estado

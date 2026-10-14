@@ -1,12 +1,14 @@
 import { ponto, desgira } from './gira.js';
 import { BALL, SHOT, TABLE, AIM_LEVELS } from './config.js';
+import { CORES as CORES_BOLA } from './bolas.js';
 import { PhysicsWorld } from './physics/PhysicsWorld.js';
 import { applyCueStrike } from './physics/CuePhysics.js';
 import { GameState, State, saveSettings } from './game/GameState.js';
 import { TurnManager } from './game/TurnManager.js';
 import { Renderer } from './render.js';
 import { sound } from './sound.js';
-import { mulberry32, rackOrder } from './game/rack.js';
+import { mulberry32 } from './game/rack.js';
+import { modoDe, recolocar } from './game/modos.js';
 
 // Relógio da tacada. 30s dá tempo de mirar sem deixar a mesa parada; o
 // contador só aparece no terço final pra não pressionar a jogada inteira.
@@ -14,8 +16,6 @@ const TEMPO_TACADA = 30;
 const AVISO = 10;
 
 const HEAD_SPOT = -TABLE.playWidth / 4;
-const FOOT_SPOT = TABLE.playWidth / 4;
-const RACK_GAP = BALL.radius * 2 * 1.004;
 const MAX_DT = 0.05;
 // Câmera lenta: a física roda com o relógio mais devagar, então as trajetórias
 // e a força da tacada são exatamente as mesmas — só dá pra acompanhar a bola.
@@ -34,10 +34,11 @@ const $ = (sel) => document.querySelector(sel);
  * (semente, assento, nomes), joga, e avisa quem terminou.
  */
 export class Sinuca {
-  constructor(renderer, { net, seed, seat, players, onFinish, onExit }) {
+  constructor(renderer, { net, seed, seat, players, onFinish, onExit, modo }) {
+    this.modo = modoDe(modo);   // bola 8, 9, 10, sinuca brasileira ou snooker (game/modos.js)
     this.state = new GameState();
     this.world = new PhysicsWorld();
-    this.turns = new TurnManager(this.state);
+    this.turns = new TurnManager(this.state, this.modo);
     this.renderer = renderer;
 
     this.angle = Math.PI / 2;
@@ -63,9 +64,10 @@ export class Sinuca {
 
     this.cueBall = this.world.addBall(0, HEAD_SPOT, 0);
     this.cueBall.number = 0;
-    for (let i = 0; i < 15; i++) {
+    for (const [i, n] of this.modo.bolas.entries()) {
       const b = this.world.addBall(i + 1, 0, 0);
-      b.number = i + 1;
+      b.number = n;
+      b.visual = this.modo.visual(n);
     }
 
     this.bindPhysics();
@@ -156,16 +158,9 @@ export class Sinuca {
   }
 
   resetRack(rand) {
-    const order = rackOrder(rand);
-    this.cueBall.reset(HEAD_SPOT, 0);
-    let k = 0;
-    for (let row = 0, idx = 1; row < 5; row++) {
-      for (let i = 0; i <= row; i++, idx++) {
-        const body = this.world.balls[idx];
-        body.number = order[k++];
-        body.reset(FOOT_SPOT + row * RACK_GAP * Math.cos(Math.PI / 6), (i - row / 2) * RACK_GAP);
-      }
-    }
+    const { branca, bolas } = this.modo.rack(rand);
+    this.cueBall.reset(branca.x, branca.z);
+    for (const { n, x, z } of bolas) this.world.balls.find((b) => b.number === n).reset(x, z);
     this.angle = Math.PI / 2;
   }
 
@@ -252,6 +247,7 @@ export class Sinuca {
       return;
     }
     if (result.shot.cueScratched) this.cueBall.reset(HEAD_SPOT, 0);
+    if (result.respot?.length) recolocar(this.world, this.modo, result.respot);
     this.myPotted += result.shot.pocketed.filter((n) => n !== 8).length;
     if (this.net) this.net.emit('resolved', this.snapshot(result));
     this.finishShot(result);
@@ -264,6 +260,8 @@ export class Sinuca {
       return;
     }
     if (result.foul) this.toast(`Falta · ${result.reason}`);
+    else if (result.respot?.length && result.reason) this.toast(result.reason);
+    else if (this.modo.pontuada && Math.max(...(result.pontos ?? [0])) > 0) this.toast(`+${Math.max(...result.pontos)} pontos`);
     else if (result.assigned) this.toast(`${this.state.players[this.state.current].name}: ${this.state.player.group}`);
     else if (result.continueTurn && result.shot.pocketed.length) this.toast('Boa! Continua');
 
@@ -289,6 +287,8 @@ export class Sinuca {
         ballInHand: s.ballInHand,
         open: s.open,
         groups: [s.players[0].group, s.players[1].group],
+        pontos: s.pontos,
+        fase: s.fase,
       },
       result,
     };
@@ -307,6 +307,8 @@ export class Sinuca {
     s.open = state.open;
     s.players[0].group = state.groups[0];
     s.players[1].group = state.groups[1];
+    if (state.pontos) s.pontos = state.pontos;
+    if (state.fase !== undefined) s.fase = state.fase;
     this.finishShot(result);
   }
 
@@ -333,7 +335,7 @@ export class Sinuca {
     this.onFinish({
       winner: result.winner,
       won: this.seat === null ? null : result.winner === this.seat,
-      reason: result.reason || 'Bola 8 encaçapada na regra',
+      reason: result.reason || this.modo.motivo,
       names: this.state.players.map((p) => p.name),
     });
   }
@@ -346,13 +348,16 @@ export class Sinuca {
       const el = $(`.player.p${i}`);
       el.classList.toggle('turn', s.current === i && this.phase !== State.MENU);
       el.querySelector('.name').textContent = s.players[i].name;
-      const g = s.players[i].group;
-      const nums = g ? (g === 'lisas' ? [1, 2, 3, 4, 5, 6, 7] : [9, 10, 11, 12, 13, 14, 15]) : null;
-      el.querySelector('.score').textContent = nums
-        ? nums.filter((n) => s.pocketed.includes(n)).length : 0;
-      el.querySelector('.balls').innerHTML = nums
-        ? nums.map((n) => `<i class="on ${s.pocketed.includes(n) ? 'done' : ''}" style="--n:${n - 1}"></i>`).join('')
-        : '<i></i><i></i><i></i><i></i><i></i><i></i><i></i>';
+      const { score, bolas } = this.modo.placar(s, i);
+      el.classList.toggle('pontos', !!this.modo.pontuada);   // snooker e brasileira: o placar é em pontos
+      el.querySelector('.score').textContent = score;
+      const lisa = (n) => this.modo.visual(n);
+      // bola 8: o atlas das 15 bolas; as outras: bolinha da cor (com o número, se tiver)
+      el.querySelector('.balls').innerHTML = bolas
+        ? bolas.map(({ n, feita, vez }) => (this.modo.id === 'sinuca'
+          ? `<i class="on ${feita ? 'done' : ''}" style="--n:${n - 1}"></i>`
+          : `<i class="cor ${feita ? 'done' : ''} ${vez ? 'vez' : ''}" style="--c:${lisa(n)?.cor ?? CORES_BOLA[(n - 1) % 15]}">${lisa(n) ? '' : n}</i>`)).join('')
+        : this.modo.pontuada ? '' : '<i></i><i></i><i></i><i></i><i></i><i></i><i></i>';
     }
   }
 

@@ -53,6 +53,8 @@ export class GameState {
     this.breakDone = false;
     this.pocketed = [];          // números na ordem em que caíram
     this.ballInHand = false;
+    this.pontos = [0, 0];        // snooker e sinuca brasileira
+    this.fase = 'vermelha';      // snooker: o que vale na próxima tacada
     this.winner = null;
     this.loseReason = null;
     this.startedAt = performance.now();

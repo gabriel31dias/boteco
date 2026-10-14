@@ -7,11 +7,17 @@ import { token } from './api.js';
 let socket = null;
 const ouvintes = new Map();      // evento -> Set<fn>
 const fila = new Map();          // evento -> payloads que chegaram sem ouvinte
+// O último estado da partida: quem começa a escutar depois (tela que monta de novo — o StrictMode
+// monta, desmonta e monta — ou volta de outra aba) recebe ele. Nos jogos por turno o servidor
+// só manda estado quando alguém joga: sem isso a tela nova ficava sem estado e travava.
+let ultimoEstado = null;
 
 const EM_FILA = new Set(['shot', 'resolved', 'estado', 'settled', 'left', 'start', 'denied',
   'proposta', 'convidado', 'recusada', 'mesa']);   // reação velha não se guarda
 
 function entregar(evento, payload) {
+  if (evento === 'estado') ultimoEstado = payload;
+  if (evento === 'start') ultimoEstado = null;   // partida nova (revanche): o estado da anterior não serve
   const fns = ouvintes.get(evento);
   if (fns?.size) { for (const fn of [...fns]) fn(payload); return; }
   if (EM_FILA.has(evento)) {
@@ -54,6 +60,7 @@ export const net = {
     socket = null;
     jogoAtual = null;
     fila.clear();
+    ultimoEstado = null;
     // ouvintes NÃO são limpos: quem se inscreveu cancela no próprio unmount, e
     // apagar aqui deixaria o app surdo depois de um relogin.
   },
@@ -64,6 +71,7 @@ export const net = {
     ouvintes.get(evento).add(fn);
     const atrasados = fila.get(evento);
     if (atrasados?.length) { fila.delete(evento); for (const p of atrasados) fn(p); }
+    else if (evento === 'estado' && ultimoEstado) fn(ultimoEstado);
     return () => ouvintes.get(evento)?.delete(fn);
   },
 
@@ -73,6 +81,7 @@ export const net = {
     // Partida nova não pode receber evento guardado da anterior: o placar da
     // velha voltava pra tela com o resultado do jogo passado.
     fila.clear();
+    ultimoEstado = null;
     net.connect(game);
     socket.emit('join', req);
   },

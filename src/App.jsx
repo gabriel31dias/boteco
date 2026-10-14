@@ -18,12 +18,33 @@ import { RatosScreen } from './app/screens/RatosScreen'
 import { CapivaraScreen } from './app/screens/CapivaraScreen'
 import { PsicopatasScreen } from './app/screens/PsicopatasScreen'
 import { GalinhasScreen } from './app/screens/GalinhasScreen'
+import { CobrasScreen } from './app/screens/CobrasScreen'
+import { ArqueirosScreen } from './app/screens/ArqueirosScreen'
+import { NavalScreen } from './app/screens/NavalScreen'
+import { ForcaScreen } from './app/screens/ForcaScreen'
+import { GolfeScreen } from './app/screens/GolfeScreen'
+import { BotaoScreen } from './app/screens/BotaoScreen'
+import { UltimaScreen } from './app/screens/UltimaScreen'
+import { PatosScreen } from './app/screens/PatosScreen'
+import { Carregando } from './app/components/Carregando'
 import capaCacheta from './assets/cacheta/capa.webp'
 import capaTanque from './assets/tanque/capa.webp'
 import capaRatos from './assets/ratos/capa.webp'
 import capaCapivara from './assets/capivara/capa.webp'
 import capaPsicopatas from './assets/psicopatas/capa.webp'
 import capaGalinhas from './assets/galinhas/capa.webp'
+import capaCobras from './assets/cobras/capa.webp'
+import capaArqueiros from './assets/arqueiros/capa.webp'
+import capaNaval from './assets/naval/capa.webp'
+import capaForca from './assets/forca/capa.webp'
+import capaGolfe from './assets/golfe/capa.webp'
+import capaUltima from './assets/ultima/capa.webp'
+import capaPatos from './assets/patos/capa.webp'
+import capaBotao from './assets/botao/capa.webp'
+import capaBola9 from './assets/sinuca/capas/sinuca9.webp'
+import capaBola10 from './assets/sinuca/capas/sinuca10.webp'
+import capaSinucaBr from './assets/sinuca/capas/sinucabr.webp'
+import capaSnooker from './assets/sinuca/capas/snooker.webp'
 import capaDamas from './app/assets/jogo-damas.png'
 import capaVelha from './app/assets/jogo-velha.png'
 import Lobby from './Lobby.jsx'
@@ -60,7 +81,8 @@ const destaque = [
 const boteco = [
   ['Sinuca Online', 'Sinuca'], ['Truco Online', 'Cartas'], ['Pôquer Online', 'Cartas'], ['Dominó Online', ''],
   ['Tanques Online', '', capaTanque], ['Ratos em Guerra', '', capaRatos], ['Capivara Pistola', '', capaCapivara],
-  ['Ratos Psicopatas', '', capaPsicopatas], ['Galinhas Psicopatas', '', capaGalinhas],
+  ['Ratos Psicopatas', '', capaPsicopatas], ['Galinhas Psicopatas', '', capaGalinhas], ['Cobras do Templo', '', capaCobras], ['Arqueiros do Céu', '', capaArqueiros], ['Batalha Naval', '', capaNaval], ['Forca', '', capaForca], ['Mini-golfe Tropical', '', capaGolfe], ['Última Carta', 'Cartas', capaUltima], ['Caçada de Patos', '', capaPatos], ['Futebol de Botão', 'Esportes', capaBotao],
+  ['Sinuca Brasileira', 'Sinuca', capaSinucaBr], ['Bola 9', 'Sinuca', capaBola9], ['Bola 10', 'Sinuca', capaBola10], ['Snooker', 'Sinuca', capaSnooker],
   // ['Cassino Ao Vivo', 'Cassino'],
 ]
 const todos = [
@@ -72,7 +94,7 @@ const todos = [
   // ['Blackjack', 'Cartas', img('m7.png')], ['Caça-Níquel', 'Slots', img('m8.png')], ['Roleta', 'Cassino', img('m9.png')],
   // ['Crash', 'Cassino', img('m10.png')], ['Mines', 'Cassino', img('m11.png')],
   ['Damas', '', capaDamas], ['Jogo da Velha', '', capaVelha], ['Cacheta', 'Cartas', capaCacheta],
-  ['Tanques', '', capaTanque], ['Ratos', '', capaRatos], ['Capivara', '', capaCapivara], ['Psicopatas', '', capaPsicopatas], ['Galinhas', '', capaGalinhas],
+  ['Tanques', '', capaTanque], ['Ratos', '', capaRatos], ['Capivara', '', capaCapivara], ['Psicopatas', '', capaPsicopatas], ['Galinhas', '', capaGalinhas], ['Cobras', '', capaCobras], ['Arqueiros', '', capaArqueiros], ['Naval', '', capaNaval], ['Forca Online', '', capaForca], ['Mini-golfe', '', capaGolfe], ['Última', 'Cartas', capaUltima], ['Patos', '', capaPatos], ['Botão', 'Esportes', capaBotao],
 ]
 /** Tile da vitrine -> jogo do servidor (server/jogos.js). O resto ainda não tem servidor. */
 const JOGO_DO_TILE = { 'Sinuca Online': 'sinuca', Sinuca: 'sinuca', 'Truco Online': 'truco', Truco: 'truco',
@@ -81,7 +103,16 @@ const JOGO_DO_TILE = { 'Sinuca Online': 'sinuca', Sinuca: 'sinuca', 'Truco Onlin
   'Tanques Online': 'tanque', Tanques: 'tanque', 'Ratos em Guerra': 'ratos', Ratos: 'ratos',
   'Capivara Pistola': 'capivara', Capivara: 'capivara',
   'Ratos Psicopatas': 'psicopatas', Psicopatas: 'psicopatas',
-  'Galinhas Psicopatas': 'galinhas', Galinhas: 'galinhas' }
+  'Galinhas Psicopatas': 'galinhas', Galinhas: 'galinhas',
+  'Cobras do Templo': 'cobras', Cobras: 'cobras',
+  'Arqueiros do Céu': 'arqueiros', Arqueiros: 'arqueiros',
+  'Batalha Naval': 'naval', Naval: 'naval',
+  Forca: 'forca', 'Forca Online': 'forca',
+  'Mini-golfe Tropical': 'golfe', 'Mini-golfe': 'golfe',
+  'Última Carta': 'ultima', 'Última': 'ultima',
+  'Caçada de Patos': 'patos', Patos: 'patos',
+  'Futebol de Botão': 'botao', Botão: 'botao',
+  'Sinuca Brasileira': 'sinucabr', 'Bola 9': 'sinuca9', 'Bola 10': 'sinuca10', Snooker: 'snooker' }
 const reais = (v) => `R$ ${v.toFixed(2).replace('.', ',')}`
 const steps = [
   ['Cadastre-se', 'Crie sua conta em', 'menos de 1 minuto'],
@@ -737,7 +768,7 @@ function Partida({ match }) {
     h.scrollbarGutter = 'auto'; h.overflow = 'hidden'
     // Sinuca e pôquer no celular em pé: giram a partida pra ficar igual ao desktop (ver gira.js).
     // O pôquer é DOM: o navegador desfaz o giro do toque sozinho, só a sinuca (canvas) precisa do gira.js.
-    const girar = () => html.classList.toggle('mesa-girada', !acabou && ['sinuca', 'poker', 'buraco', 'buraco-duplas', 'cacheta'].includes(match.game) && innerWidth < innerHeight)
+    const girar = () => html.classList.toggle('mesa-girada', !acabou && ['sinuca', 'sinuca9', 'sinuca10', 'sinucabr', 'snooker', 'poker', 'buraco', 'buraco-duplas', 'cacheta'].includes(match.game) && innerWidth < innerHeight)
     girar()
     addEventListener('resize', girar)
     return () => { removeEventListener('resize', girar); html.classList.remove('mesa-girada'); h.scrollbarGutter = ''; h.overflow = '' }
@@ -754,10 +785,19 @@ function Partida({ match }) {
     : match.game === 'capivara' ? <CapivaraScreen />
     : match.game === 'psicopatas' ? <PsicopatasScreen />
     : match.game === 'galinhas' ? <GalinhasScreen />
+    : match.game === 'cobras' ? <CobrasScreen />
+    : match.game === 'arqueiros' ? <ArqueirosScreen />
+    : match.game === 'naval' ? <NavalScreen />
+    : match.game === 'forca' ? <ForcaScreen />
+    : match.game === 'golfe' ? <GolfeScreen />
+    : match.game === 'ultima' ? <UltimaScreen />
+    : match.game === 'patos' ? <PatosScreen />
+    : match.game === 'botao' ? <BotaoScreen />
     : <GameScreen />
   // Avisos da mesa ("o adversário saiu do app…") também durante a partida
-  return <div className="bt-partida">{tela}<Reacoes key={match.matchId} match={match} /><ChatAvisos />{notification && <div className="bt-toast" role="status">{notification}</div>}
-    <ConexaoPerdida matchId={match.matchId} /></div>
+  // a tela de carregamento fica fora da .bt-partida: na mesa girada (sinuca, pôquer) ela não gira junto
+  return <><div className="bt-partida">{tela}<Reacoes key={match.matchId} match={match} /><ChatAvisos />{notification && <div className="bt-toast" role="status">{notification}</div>}
+    <ConexaoPerdida matchId={match.matchId} /></div><Carregando key={match.matchId} jogo={match.game} /></>
 }
 
 export default function App() {

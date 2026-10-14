@@ -60,6 +60,15 @@
 .sinuca .balls i.on { background: url(./assets/sinuca/bolas.webp) calc(var(--n) * 100% / 14) 0 / 1500% 100%;
   box-shadow: none; transform: scale(1.12); }
 .sinuca .balls i.done { opacity: .25; filter: grayscale(.6); }
+/* modos de pontos: o número aparece grande no lugar dos furinhos */
+.sinuca .player.pontos > .score { font-size: calc(var(--nome) * 1.25); font-weight: 900; color: #ffd23d; background: none;
+  width: auto; height: auto; line-height: 1; text-shadow: 0 2px 3px #000; }
+.sinuca .player.pontos > .score::after { content: ' pts'; font-size: .55em; color: #fff; }
+/* variantes (bola 9/10, snooker, brasileira): bolinha na cor, com o número quando tem */
+.sinuca .balls i.cor { background: radial-gradient(circle at 35% 30%, #fff8 0 12%, var(--c) 40%, color-mix(in srgb, var(--c) 60%, #000) 100%);
+  color: #111; font: 900 calc(var(--bola) * .5)/1 system-ui; display: grid; place-items: center; text-shadow: 0 0 2px #fff; }
+.sinuca .balls i.vez { outline: 2px solid #ffd23d; outline-offset: 1px; animation: bola-vez 1s ease-in-out infinite; }
+@keyframes bola-vez { 50% { transform: scale(1.18); } }
 
 .sinuca .player.turn { transform: scale(1.04);
   box-shadow: 0 0 calc(2 * var(--u)) var(--cor), 0 0 calc(4 * var(--u)) var(--cor), inset 0 0 calc(1.8 * var(--u)) var(--cor); }

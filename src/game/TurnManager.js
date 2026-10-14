@@ -1,5 +1,5 @@
-import { RulesEngine } from './RulesEngine.js';
 import { groupOf } from './GameState.js';
+import { modoDe } from './modos.js';
 
 const SETTLE_GRACE = 0.18;   // segundos de folga após a última bola parar
 const FALTAS_WO = 2;         // faltas por tempo seguidas que entregam a partida
@@ -9,9 +9,9 @@ const FALTAS_WO = 2;         // faltas por tempo seguidas que entregam a partida
  * então aplica as regras. Nunca libera outra tacada com bolas em movimento.
  */
 export class TurnManager {
-  constructor(state) {
+  constructor(state, modo = modoDe('sinuca')) {
     this.state = state;
-    this.rules = new RulesEngine();
+    this.modo = modo;
     this.shot = null;
     this.settleTimer = 0;
     this.semTacada = [0, 0];   // faltas por tempo seguidas de cada jogador
@@ -65,11 +65,15 @@ export class TurnManager {
     const shot = this.shot;
     this.shot = null;
 
-    const result = this.rules.evaluate(shot, s);
+    const result = this.modo.avaliar(shot, s);
     const me = s.current;
     this.semTacada[me] = 0;   // tacou: a contagem de faltas por tempo zera
 
     for (const n of shot.pocketed) if (!s.pocketed.includes(n)) s.pocketed.push(n);
+    // bolas que voltam pra mesa (bola 9/10 na falta, cores do snooker...): saem da lista das encaçapadas
+    if (result.respot?.length) s.pocketed = s.pocketed.filter((n) => !result.respot.includes(n));
+    if (result.pontos) s.pontos = s.pontos.map((p, i) => p + result.pontos[i]);
+    if (result.fase !== undefined) s.fase = result.fase;
     if (result.assigned) {
       s.players[0].group = result.assigned[0];
       s.players[1].group = result.assigned[1];
