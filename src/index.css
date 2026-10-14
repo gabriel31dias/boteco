@@ -410,3 +410,33 @@ body:has(.patos) .reacoes-chegadas { left: 8px; bottom: auto; top: 112px; }
   body:has(.patos) .reacoes-caixa > button { rotate: 90deg; }
   body:has(.patos) .reacoes-chegadas { left: auto; right: 112px; top: 8px; }
 }
+/* Corrida de jegues: embaixo ficam o CHICOTE e o PULAR; 👥 e 💬 vão pra baixo da colocação
+   (canto de cima à esquerda). Em pé o jogo é desenhado girado: esse canto vira o de cima à direita. */
+body:has(.jegues) .reacoes-caixa { left: 8px; bottom: auto; top: 104px; flex-direction: row; }
+body:has(.jegues) .reacoes-caixa .reacoes-menu, body:has(.jegues) .reacoes-caixa .reacoes-lista { bottom: auto; top: 48px; left: 0; }
+body:has(.jegues) .reacoes-chegadas { left: 8px; bottom: auto; top: 156px; }
+@media (orientation: portrait) {
+  body:has(.jegues) .reacoes-caixa { left: auto; right: 104px; top: 8px; flex-direction: column; }
+  body:has(.jegues) .reacoes-caixa > button { rotate: 90deg; }
+  body:has(.jegues) .reacoes-chegadas { left: auto; right: 156px; top: 8px; }
+}
+/* Bazuca: o placar fica no canto de cima à esquerda; 👥 e 💬 vão logo abaixo dele (até 5 linhas).
+   Em pé o jogo é desenhado girado: esse canto vira o de cima à direita. */
+body:has(.bazuca) .reacoes-caixa { left: 8px; bottom: auto; top: 166px; flex-direction: row; }
+body:has(.bazuca) .reacoes-caixa .reacoes-menu, body:has(.bazuca) .reacoes-caixa .reacoes-lista { bottom: auto; top: 48px; left: 0; }
+body:has(.bazuca) .reacoes-chegadas { left: 8px; bottom: auto; top: 218px; }
+@media (orientation: portrait) {
+  body:has(.bazuca) .reacoes-caixa { left: auto; right: 166px; top: 8px; flex-direction: column; }
+  body:has(.bazuca) .reacoes-caixa > button { rotate: 90deg; }
+  body:has(.bazuca) .reacoes-chegadas { left: auto; right: 218px; top: 8px; }
+}
+/* Zombie Rush: o placar fica em cima no meio e os botões de som/sair em cima à direita;
+   👥 e 💬 vão pro canto de cima à esquerda (em pé o jogo é desenhado girado: canto de cima à direita). */
+body:has(.zumbis) .reacoes-caixa { left: 8px; bottom: auto; top: 8px; flex-direction: row; }
+body:has(.zumbis) .reacoes-caixa .reacoes-menu, body:has(.zumbis) .reacoes-caixa .reacoes-lista { bottom: auto; top: 48px; left: 0; }
+body:has(.zumbis) .reacoes-chegadas { left: 8px; bottom: auto; top: 60px; }
+@media (orientation: portrait) {
+  body:has(.zumbis) .reacoes-caixa { left: auto; right: 8px; top: 8px; flex-direction: column; }
+  body:has(.zumbis) .reacoes-caixa > button { rotate: 90deg; }
+  body:has(.zumbis) .reacoes-chegadas { left: auto; right: 60px; top: 8px; }
+}

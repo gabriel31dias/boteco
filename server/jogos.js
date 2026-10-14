@@ -267,6 +267,46 @@ export const JOGOS = {
     cores: ['azul', 'vermelho', 'verde', 'roxo'],
     nomesCores: { azul: 'Celeste · azul', vermelho: 'Brasa · vermelho', verde: 'Musgo · verde', roxo: 'Sombra · roxo' },
   },
+  // Corrida de jegues com obstáculos, tempo real (ver server/jogos/jegues.js): quem chegar primeiro leva.
+  jegues: {
+    id: 'jegues',
+    nome: 'Corrida de Jegues',
+    subtitulo: '2 a 4 · pula, chicoteia e não deixa empacar',
+    porta: 3031,
+    arbitro: 'servidor',
+    minJogadores: 2,
+    maxJogadores: 4,
+    esperaMs: 10_000,
+    cores: ['pepano', 'costelinha', 'misere', 'relampago', 'jerimum'],
+    nomesCores: { pepano: 'Pé de Pano · equilibrado', costelinha: 'Costelinha · levanta rápido', misere: 'Miserê · pula alto',
+      relampago: 'Relâmpago · veloz, cansa fácil', jerimum: 'Jerimum · fôlego de sobra' },
+  },
+  // Bazuca contra helicópteros, tempo real (ver server/jogos/bazuca.js): quem derrubar mais no tempo leva.
+  bazuca: {
+    id: 'bazuca',
+    nome: 'Bazuca x Helicópteros',
+    subtitulo: '2 a 5 · derruba helicóptero · quem derrubar mais leva',
+    porta: 3032,
+    arbitro: 'servidor',
+    minJogadores: 2,
+    maxJogadores: 5,
+    esperaMs: 10_000,
+    cores: ['azul', 'vermelho', 'amarelo', 'roxo', 'verde'],
+    nomesCores: { azul: 'Recruta Azul', vermelho: 'Cabo Vermelho', amarelo: 'Sargento Amarelo', roxo: 'Tenente Roxo', verde: 'Capitão Verde' },
+  },
+  // Zumbis de plataforma, tempo real (ver server/jogos/zumbis.js): quem fizer mais pontos em 90s leva.
+  zumbis: {
+    id: 'zumbis',
+    nome: 'Zombie Rush',
+    subtitulo: '2 a 4 · mata zumbi, faz combo · mais pontos leva',
+    porta: 3033,
+    arbitro: 'servidor',
+    minJogadores: 2,
+    maxJogadores: 4,
+    esperaMs: 10_000,
+    cores: ['azul', 'vermelho', 'amarelo', 'verde'],
+    nomesCores: { azul: 'Soldado Azul', vermelho: 'Soldado Vermelho', amarelo: 'Soldado Amarelo', verde: 'Soldado Verde' },
+  },
   // Futebol de botão FLA × VAS, 1 contra 1, por turnos (ver server/jogos/botao.js).
   botao: {
     id: 'botao',

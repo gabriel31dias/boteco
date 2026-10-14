@@ -68,7 +68,7 @@ export const GalinhasScreen: React.FC = () => {
 
       {fim && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md">
-          <div className="w-full max-w-sm bg-[#140c2c] border border-purple-500/30 rounded-3xl p-6 text-center shadow-[0_0_50px_rgba(168,85,247,0.4)]">
+          <div className="w-full max-w-sm bg-[#121214] border border-white/10 rounded-3xl p-6 text-center shadow-[0_0_50px_rgba(242,20,30,0.25)]">
             <div className="flex justify-center mb-3">
               {ganhei ? (
                 <div className="w-16 h-16 rounded-full bg-emerald-500/20 border border-emerald-400/50 flex items-center justify-center text-emerald-400">
@@ -115,7 +115,7 @@ export const GalinhasScreen: React.FC = () => {
             <JogadoresDaPartida players={match.players} eu={match.players[match.seat]?.id} />
             <button
               onClick={() => setMatch(null)}
-              className="w-full mt-4 py-3.5 rounded-2xl bg-gradient-to-r from-purple-600 to-indigo-600 text-white font-black text-sm active:scale-95 transition-all"
+              className="w-full mt-4 py-3.5 rounded-2xl bg-gradient-to-b from-[#f2141e] to-[#b80a12] text-white font-black text-sm active:scale-95 transition-all"
             >
               Voltar ao início
             </button>

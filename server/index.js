@@ -35,6 +35,9 @@ import * as golfe from './jogos/golfe.js';
 import * as ultima from './jogos/ultima.js';
 import * as patos from './jogos/patos.js';
 import * as botao from './jogos/botao.js';
+import * as jegues from './jogos/jegues.js';
+import * as bazuca from './jogos/bazuca.js';
+import * as zumbis from './jogos/zumbis.js';
 
 /** Quanto tempo o app pode ficar fora da tela, em partida, antes do W.O. */
 export const AUSENCIA_MS = Number(process.env.AUSENCIA_MS) || 30_000;
@@ -64,7 +67,7 @@ const perfil = (u) => ({
 const brl = (centavos) => `R$ ${(centavos / 100).toFixed(2).replace('.', ',')}`;
 
 /** Cada processo serve um jogo só. O árbitro de tabuleiro fica aqui. */
-const ARBITROS = { velha, domino, truco, damas, 'truco-duplas': truco, 'domino-duplas': domino, poker, buraco, 'buraco-duplas': buraco, cacheta, tanque, ratos, capivara, psicopatas, galinhas, cobras, arqueiros, naval, forca, golfe, ultima, patos, botao };
+const ARBITROS = { velha, domino, truco, damas, 'truco-duplas': truco, 'domino-duplas': domino, poker, buraco, 'buraco-duplas': buraco, cacheta, tanque, ratos, capivara, psicopatas, galinhas, cobras, arqueiros, naval, forca, golfe, ultima, patos, botao, jegues, bazuca, zumbis };
 
 export function attach(io, jogoId = JOGO_PADRAO) {
   const jogo = jogoDe(jogoId);

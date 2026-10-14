@@ -20,7 +20,7 @@ export const ChatBotao: React.FC = () => {
       onClick={() => abrir()}
       aria-label={totalAvisos ? `Chat, ${totalAvisos} novidades` : 'Chat'}
       style={{ right: 'max(1rem, calc(50vw - 235px + 1rem))' }}
-      className="fixed bottom-28 z-40 w-14 h-14 rounded-full bg-gradient-to-br from-purple-600 to-indigo-700 border border-purple-300/40 text-white grid place-items-center shadow-[0_6px_24px_rgba(124,58,237,0.55)] active:scale-95 transition-all"
+      className="fixed bottom-28 z-40 w-14 h-14 rounded-full bg-gradient-to-b from-[#f2141e] to-[#b80a12] border border-[#ff3a40] text-white grid place-items-center shadow-[0_6px_24px_rgba(242,20,30,0.55)] active:scale-95 transition-all"
     >
       <MessageCircle className="w-6 h-6" />
       {totalAvisos > 0 && (
@@ -45,12 +45,12 @@ const Balao: React.FC<{ m: Msg; minha: boolean; comNome?: boolean; onPerfil?: (p
         <Avatar url={m.de.avatar} size={30} alt="" />
       </button>
     ) : <Avatar url={m.de.avatar} size={30} alt="" />)}
-    <div className={`max-w-[78%] rounded-2xl px-3 py-2 ${minha ? 'bg-purple-600 rounded-br-md' : 'bg-[#1f1640] rounded-bl-md'}`}>
+    <div className={`max-w-[78%] rounded-2xl px-3 py-2 ${minha ? 'bg-gradient-to-b from-[#f2141e] to-[#b80a12] rounded-br-md' : 'bg-[#1c1c1f] rounded-bl-md'}`}>
       {comNome && !minha && (onPerfil ? (
-        <button onClick={() => onPerfil(m.de)} className="block text-[11px] font-bold text-purple-300 mb-0.5 hover:underline">{m.de.name}</button>
-      ) : <p className="text-[11px] font-bold text-purple-300 mb-0.5">{m.de.name}</p>)}
+        <button onClick={() => onPerfil(m.de)} className="block text-[11px] font-bold text-[#ffc83d] mb-0.5 hover:underline">{m.de.name}</button>
+      ) : <p className="text-[11px] font-bold text-[#ffc83d] mb-0.5">{m.de.name}</p>)}
       <p className="text-sm text-white whitespace-pre-wrap break-words">{m.texto}</p>
-      <p className={`text-[10px] mt-0.5 text-right ${minha ? 'text-purple-200' : 'text-gray-500'}`}>{hora(m.em)}</p>
+      <p className={`text-[10px] mt-0.5 text-right ${minha ? 'text-red-100' : 'text-gray-500'}`}>{hora(m.em)}</p>
     </div>
   </div>
 );
@@ -69,7 +69,7 @@ const Digitar: React.FC<{ enviar: (t: string) => Promise<boolean>; placeholder: 
   return (
     <form
       onSubmit={(e) => { e.preventDefault(); mandar(); }}
-      className="flex items-end gap-2 p-3 border-t border-purple-500/20 bg-[#110b26]"
+      className="flex items-end gap-2 p-3 border-t border-white/10 bg-[#0e0e10]"
     >
       <textarea
         value={texto}
@@ -78,13 +78,13 @@ const Digitar: React.FC<{ enviar: (t: string) => Promise<boolean>; placeholder: 
         placeholder={placeholder}
         rows={1}
         aria-label={placeholder}
-        className="flex-1 resize-none max-h-24 bg-[#1b1238] border border-purple-500/30 rounded-2xl py-2.5 px-3.5 text-sm text-white placeholder-gray-500 focus:outline-none focus:border-purple-400"
+        className="flex-1 resize-none max-h-24 bg-[#1c1c1f] border border-white/10 rounded-2xl py-2.5 px-3.5 text-sm text-white placeholder-gray-500 focus:outline-none focus:border-[#ff3a40]"
       />
       <button
         type="submit"
         disabled={!texto.trim() || enviando}
         aria-label="Enviar"
-        className="w-11 h-11 shrink-0 rounded-full bg-purple-600 text-white grid place-items-center disabled:opacity-40 active:scale-95"
+        className="w-11 h-11 shrink-0 rounded-full bg-gradient-to-b from-[#f2141e] to-[#b80a12] text-white grid place-items-center disabled:opacity-40 active:scale-95"
       >
         <Send className="w-5 h-5" />
       </button>
@@ -130,7 +130,7 @@ export const BotaoAmizade: React.FC<{ id: number; relacao: Relacao; onMudou?: (r
         }
         setOcupado(false);
       }}
-      className={`${base} bg-purple-600 text-white active:scale-95 disabled:opacity-50`}
+      className={`${base} bg-gradient-to-b from-[#f2141e] to-[#b80a12] text-white active:scale-95 disabled:opacity-50`}
     >
       <UserPlus className="w-3.5 h-3.5" />{recebido ? 'Aceitar amizade' : 'Adicionar amigo'}
     </button>
@@ -186,14 +186,14 @@ const AbaAmigos: React.FC = () => {
     <div className="flex-1 overflow-y-auto p-3 space-y-4">
       {pedidos.length > 0 && (
         <section>
-          <h4 className="text-xs font-bold text-purple-300 mb-2">Pedidos de amizade</h4>
+          <h4 className="text-xs font-bold text-[#ffc83d] mb-2">Pedidos de amizade</h4>
           <div className="space-y-2">
             {pedidos.map((p) => (
-              <div key={p.id} className="flex items-center gap-3 rounded-2xl bg-[#1b1238] border border-purple-500/25 p-2.5">
+              <div key={p.id} className="flex items-center gap-3 rounded-2xl bg-[#1c1c1f] border border-white/10 p-2.5">
                 <Avatar url={p.avatar} size={38} alt="" />
                 <span className="flex-1 min-w-0 text-sm font-bold text-white truncate">{p.name}</span>
                 <button onClick={() => responder(p.id, false)} className="px-3 py-1.5 rounded-xl bg-white/5 text-xs font-bold text-gray-300">Recusar</button>
-                <button onClick={() => responder(p.id, true)} className="px-3 py-1.5 rounded-xl bg-purple-600 text-xs font-bold text-white">Aceitar</button>
+                <button onClick={() => responder(p.id, true)} className="px-3 py-1.5 rounded-xl bg-gradient-to-b from-[#f2141e] to-[#b80a12] text-xs font-bold text-white">Aceitar</button>
               </div>
             ))}
           </div>
@@ -202,7 +202,7 @@ const AbaAmigos: React.FC = () => {
       <section>
         {ordem.length === 0 ? (
           <div className="text-center mt-10 px-6">
-            <Users className="w-10 h-10 mx-auto text-purple-400/60" />
+            <Users className="w-10 h-10 mx-auto text-[#ff3a40]/70" />
             <p className="text-sm text-gray-400 mt-3">Você ainda não tem amigos aqui. Adicione quem jogou com você na aba Recentes.</p>
           </div>
         ) : ordem.map((a) => (
@@ -214,7 +214,7 @@ const AbaAmigos: React.FC = () => {
             >
               <span className="relative">
                 <Avatar url={a.avatar} size={42} alt="" />
-                <i className={`absolute right-0 bottom-0 w-3 h-3 rounded-full border-2 border-[#130d2c] ${a.online ? 'bg-emerald-400' : 'bg-gray-600'}`} />
+                <i className={`absolute right-0 bottom-0 w-3 h-3 rounded-full border-2 border-[#121214] ${a.online ? 'bg-emerald-400' : 'bg-gray-600'}`} />
               </span>
               <span className="flex-1 min-w-0">
                 <span className="block text-sm font-bold text-white truncate">{a.name}</span>
@@ -241,7 +241,7 @@ const AbaRecentes: React.FC = () => {
     <div className="flex-1 overflow-y-auto p-3 space-y-2">
       {lista.length === 0 && <p className="text-center text-sm text-gray-500 mt-10">Jogue uma partida pra encontrar gente aqui.</p>}
       {lista.map((p) => (
-        <div key={p.id} className="flex items-center gap-3 rounded-2xl bg-[#1b1238] border border-purple-500/20 p-2.5">
+        <div key={p.id} className="flex items-center gap-3 rounded-2xl bg-[#1c1c1f] border border-white/10 p-2.5">
           <Avatar url={p.avatar} size={40} alt="" />
           <span className="flex-1 min-w-0">
             <span className="block text-sm font-bold text-white truncate">{p.name}</span>
@@ -264,7 +264,7 @@ const Conversa: React.FC<{ a: Amigo }> = ({ a: aberta }) => {
   const [menu, setMenu] = useState(false);
   return (
     <>
-      <div className="flex items-center gap-3 px-3 py-2.5 border-b border-purple-500/20">
+      <div className="flex items-center gap-3 px-3 py-2.5 border-b border-white/10">
         <button onClick={fecharConversa} aria-label="Voltar para os amigos" className="w-9 h-9 rounded-full grid place-items-center hover:bg-white/10">
           <ArrowLeft className="w-5 h-5 text-white" />
         </button>
@@ -276,7 +276,7 @@ const Conversa: React.FC<{ a: Amigo }> = ({ a: aberta }) => {
         <div className="relative">
           <button onClick={() => setMenu((m) => !m)} aria-label="Mais opções" className="px-3 py-1.5 rounded-xl text-xs font-bold text-gray-300 bg-white/5">Opções</button>
           {menu && (
-            <div className="absolute right-0 top-10 z-10 w-48 rounded-2xl bg-[#1f1640] border border-purple-500/30 p-1.5 shadow-xl">
+            <div className="absolute right-0 top-10 z-10 w-48 rounded-2xl bg-[#1c1c1f] border border-white/10 p-1.5 shadow-xl">
               <button onClick={() => desfazer(a.id)} className="w-full flex items-center gap-2 px-3 py-2.5 rounded-xl text-sm text-gray-200 hover:bg-white/5">
                 <UserMinus className="w-4 h-4" />Desfazer amizade
               </button>
@@ -310,7 +310,7 @@ export const ChatPainel: React.FC = () => {
         aria-modal="true"
         aria-label="Chat"
         onClick={(e) => e.stopPropagation()}
-        className="w-full max-w-md h-full flex flex-col bg-[#130d2c] border-l border-purple-500/30 animate-fade-in"
+        className="w-full max-w-md h-full flex flex-col bg-[#121214] border-l border-white/10 animate-fade-in"
       >
         {conversaCom ? <Conversa a={conversaCom} /> : (
           <>
@@ -320,7 +320,7 @@ export const ChatPainel: React.FC = () => {
                 <X className="w-4 h-4" />
               </button>
             </div>
-            <div className="flex gap-1.5 px-3 pb-3 border-b border-purple-500/20" role="tablist">
+            <div className="flex gap-1.5 px-3 pb-3 border-b border-white/10" role="tablist">
               {abas.map((t) => (
                 <button
                   key={t.id}
@@ -328,7 +328,7 @@ export const ChatPainel: React.FC = () => {
                   aria-selected={aba === t.id}
                   onClick={() => setAba(t.id)}
                   className={`flex-1 py-2 rounded-xl text-xs font-extrabold transition-all ${
-                    aba === t.id ? 'bg-purple-600 text-white' : 'bg-[#1b1238] text-gray-400'}`}
+                    aba === t.id ? 'bg-gradient-to-b from-[#f2141e] to-[#b80a12] text-white' : 'bg-[#1c1c1f] text-gray-400'}`}
                 >
                   {t.nome}{t.conta ? <span className="ml-1.5 px-1.5 rounded-full bg-rose-500 text-white">{t.conta}</span> : null}
                 </button>
@@ -355,13 +355,13 @@ export const PedidoAmizadeModal: React.FC = () => {
   return (
     <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm">
       <div role="dialog" aria-modal="true" aria-labelledby="pedido-titulo"
-        className="w-full max-w-sm bg-[#130d2c] border border-purple-500/30 rounded-3xl p-6 text-center shadow-[0_0_40px_rgba(124,58,237,0.35)]">
+        className="w-full max-w-sm bg-[#121214] border border-white/10 rounded-3xl p-6 text-center shadow-[0_0_40px_rgba(242,20,30,0.25)]">
         <div className="flex justify-center"><Avatar url={p.avatar} size={80} alt={p.name} /></div>
         <h3 id="pedido-titulo" className="text-xl font-black text-white mt-4">{p.name} quer ser seu amigo</h3>
         <p className="text-sm text-gray-400 mt-1.5">Amigos podem trocar mensagens privadas no chat.</p>
         <div className="flex gap-2 mt-5">
-          <button onClick={() => responder(p.id, false)} className="flex-1 py-3 rounded-2xl bg-[#1b1238] border border-purple-500/20 text-gray-300 font-bold text-sm">Recusar</button>
-          <button onClick={() => responder(p.id, true)} className="flex-[1.5] py-3 rounded-2xl bg-gradient-to-r from-purple-600 to-indigo-600 text-white font-black text-sm">Aceitar</button>
+          <button onClick={() => responder(p.id, false)} className="flex-1 py-3 rounded-2xl bg-[#1c1c1f] border border-white/10 text-gray-300 font-bold text-sm">Recusar</button>
+          <button onClick={() => responder(p.id, true)} className="flex-[1.5] py-3 rounded-2xl bg-gradient-to-b from-[#f2141e] to-[#b80a12] text-white font-black text-sm">Aceitar</button>
         </div>
         <button onClick={adiarPedido} className="mt-3 text-xs text-gray-500 underline">Decidir depois</button>
       </div>
@@ -376,7 +376,7 @@ export const ChatAvisos: React.FC = () => {
   return (
     <div className="fixed top-3 left-1/2 -translate-x-1/2 z-[70] flex flex-col items-center gap-1.5 pointer-events-none w-[min(92vw,420px)]" role="status">
       {avisos.map((a) => (
-        <div key={a.id} className="max-w-full px-4 py-2 rounded-2xl bg-[#1b1238]/95 border border-purple-400/40 text-sm font-bold text-white shadow-lg truncate animate-fade-in">
+        <div key={a.id} className="max-w-full px-4 py-2 rounded-2xl bg-[#1c1c1f]/95 border border-[#ff3a40]/60 text-sm font-bold text-white shadow-lg truncate animate-fade-in">
           {a.texto}
         </div>
       ))}
@@ -413,13 +413,13 @@ export const JogadorCard: React.FC<{
   return (
     <div className="fixed inset-0 z-[65] flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm" onClick={onClose}>
       <div role="dialog" aria-modal="true" aria-label={`Perfil de ${jogador.name}`} onClick={(e) => e.stopPropagation()}
-        className="w-full max-w-xs bg-[#130d2c] border border-purple-500/30 rounded-3xl p-5 text-center relative">
+        className="w-full max-w-xs bg-[#121214] border border-white/10 rounded-3xl p-5 text-center relative">
         <button onClick={onClose} aria-label="Fechar" className="absolute top-3 right-3 w-8 h-8 rounded-full bg-white/10 grid place-items-center text-gray-300">
           <X className="w-4 h-4" />
         </button>
         <div className="flex justify-center"><Avatar url={jogador.avatar} size={72} alt={jogador.name} /></div>
         <h3 className="text-lg font-black text-white mt-3">{jogador.name}</h3>
-        {jogador.level != null && <p className="text-xs text-purple-300 font-semibold">Nível {jogador.level}</p>}
+        {jogador.level != null && <p className="text-xs text-[#ffc83d] font-semibold">Nível {jogador.level}</p>}
         {hist && (
           <p className="text-sm text-gray-300 mt-2">
             {hist.partidas
@@ -437,7 +437,7 @@ export const JogadorCard: React.FC<{
             <div className="grid grid-cols-2 gap-1.5">
               {MOTIVOS.map(([m, nome]) => (
                 <button key={m} onClick={async () => { if (await denunciar(jogador.id, m, mensagemId)) onClose(); }}
-                  className="py-2 rounded-xl bg-[#1b1238] border border-rose-500/30 text-rose-200 text-xs font-bold">{nome}</button>
+                  className="py-2 rounded-xl bg-[#1c1c1f] border border-rose-500/30 text-rose-200 text-xs font-bold">{nome}</button>
               ))}
             </div>
           </div>
@@ -474,9 +474,9 @@ export const JogadoresDaPartida: React.FC<{ players: { id: number; name: string;
   if (!outros.length) return null;
   return (
     <div className="mt-4 text-left space-y-2">
-      <p className="text-[11px] font-bold text-purple-300">Jogaram com você</p>
+      <p className="text-[11px] font-bold text-[#ffc83d]">Jogaram com você</p>
       {outros.map((p) => (
-        <div key={p.id} className="flex items-center gap-2.5 rounded-2xl bg-[#1b1238] border border-purple-500/20 p-2">
+        <div key={p.id} className="flex items-center gap-2.5 rounded-2xl bg-[#1c1c1f] border border-white/10 p-2">
           <Avatar url={p.avatar} size={34} alt="" />
           <span className="flex-1 min-w-0 text-sm font-bold text-white truncate">{p.name}</span>
           {rels[p.id] && <BotaoAmizade id={p.id} relacao={rels[p.id]} compacto
@@ -499,7 +499,7 @@ export const ConviteModal: React.FC<{ onEntrar: () => void }> = ({ onEntrar }) =
   return (
     <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm">
       <div role="dialog" aria-modal="true" aria-labelledby="convite-titulo"
-        className="w-full max-w-sm bg-[#130d2c] border border-purple-500/30 rounded-3xl p-6 text-center shadow-[0_0_40px_rgba(124,58,237,0.35)]">
+        className="w-full max-w-sm bg-[#121214] border border-white/10 rounded-3xl p-6 text-center shadow-[0_0_40px_rgba(242,20,30,0.25)]">
         <div className="flex justify-center"><Avatar url={c.de.avatar} size={76} alt={c.de.name} /></div>
         <h3 id="convite-titulo" className="text-xl font-black text-white mt-4">
           {c.revanche ? `${c.de.name} quer revanche!` : `${c.de.name} te convidou`}
@@ -511,9 +511,9 @@ export const ConviteModal: React.FC<{ onEntrar: () => void }> = ({ onEntrar }) =
           {c.stake ? `Valendo ${reaisDe(c.stake)} de entrada` : 'Sem valor de entrada'}
         </p>
         <div className="flex gap-2 mt-5">
-          <button onClick={recusarConvite} className="flex-1 py-3 rounded-2xl bg-[#1b1238] border border-purple-500/20 text-gray-300 font-bold text-sm">Agora não</button>
+          <button onClick={recusarConvite} className="flex-1 py-3 rounded-2xl bg-[#1c1c1f] border border-white/10 text-gray-300 font-bold text-sm">Agora não</button>
           <button onClick={() => { aceitarConvite(); onEntrar(); }}
-            className="flex-[1.5] py-3 rounded-2xl bg-gradient-to-r from-purple-600 to-indigo-600 text-white font-black text-sm">
+            className="flex-[1.5] py-3 rounded-2xl bg-gradient-to-b from-[#f2141e] to-[#b80a12] text-white font-black text-sm">
             Entrar na sala
           </button>
         </div>
@@ -537,7 +537,7 @@ export const ConvidarAmigos: React.FC<{ sala: { jogo: string; code: string; stak
   return createPortal(
     <div className="fixed inset-0 z-[62] flex items-end sm:items-center justify-center bg-black/70 backdrop-blur-sm" onClick={onClose}>
       <div role="dialog" aria-modal="true" aria-label="Convidar amigos" onClick={(e) => e.stopPropagation()}
-        className="w-full max-w-md max-h-[75vh] flex flex-col bg-[#130d2c] border border-purple-500/30 rounded-t-3xl sm:rounded-3xl">
+        className="w-full max-w-md max-h-[75vh] flex flex-col bg-[#121214] border border-white/10 rounded-t-3xl sm:rounded-3xl">
         <div className="flex items-center justify-between px-5 pt-5 pb-3">
           <div>
             <h3 className="text-lg font-black text-white">Convidar amigos</h3>
@@ -552,7 +552,7 @@ export const ConvidarAmigos: React.FC<{ sala: { jogo: string; code: string; stak
             <p className="text-center text-sm text-gray-400 py-8 px-6">Você ainda não tem amigos. Adicione pelo chat e convide daqui.</p>
           )}
           {ordem.map((a) => (
-            <div key={a.id} className="flex items-center gap-3 rounded-2xl p-2.5 bg-[#1b1238] border border-purple-500/15">
+            <div key={a.id} className="flex items-center gap-3 rounded-2xl p-2.5 bg-[#1c1c1f] border border-white/10">
               <span className="relative">
                 <Avatar url={a.avatar} size={40} alt="" />
                 <i className={`absolute right-0 bottom-0 w-3 h-3 rounded-full border-2 border-[#1b1238] ${a.online ? 'bg-emerald-400' : 'bg-gray-600'}`} />
@@ -573,7 +573,7 @@ export const ConvidarAmigos: React.FC<{ sala: { jogo: string; code: string; stak
                     const online = await convidar(a.id, sala);
                     if (online !== null) setEnviados((e) => ({ ...e, [a.id]: online ? 'online' : 'offline' }));
                   }}
-                  className="px-3.5 py-1.5 rounded-xl bg-purple-600 text-white text-xs font-bold active:scale-95"
+                  className="px-3.5 py-1.5 rounded-xl bg-gradient-to-b from-[#f2141e] to-[#b80a12] text-white text-xs font-bold active:scale-95"
                 >
                   Convidar
                 </button>

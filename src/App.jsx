@@ -26,6 +26,9 @@ import { GolfeScreen } from './app/screens/GolfeScreen'
 import { BotaoScreen } from './app/screens/BotaoScreen'
 import { UltimaScreen } from './app/screens/UltimaScreen'
 import { PatosScreen } from './app/screens/PatosScreen'
+import { JeguesScreen } from './app/screens/JeguesScreen'
+import { BazucaScreen } from './app/screens/BazucaScreen'
+import { ZumbisScreen } from './app/screens/ZumbisScreen'
 import { Carregando } from './app/components/Carregando'
 import capaCacheta from './assets/cacheta/capa.webp'
 import capaTanque from './assets/tanque/capa.webp'
@@ -41,6 +44,9 @@ import capaGolfe from './assets/golfe/capa.webp'
 import capaUltima from './assets/ultima/capa.webp'
 import capaPatos from './assets/patos/capa.webp'
 import capaBotao from './assets/botao/capa.webp'
+import capaJegues from './assets/jegues/capa.webp'
+import capaBazuca from './assets/bazuca/capa.webp'
+import capaZumbis from './assets/zumbis/capa.webp'
 import capaBola9 from './assets/sinuca/capas/sinuca9.webp'
 import capaBola10 from './assets/sinuca/capas/sinuca10.webp'
 import capaSinucaBr from './assets/sinuca/capas/sinucabr.webp'
@@ -81,7 +87,7 @@ const destaque = [
 const boteco = [
   ['Sinuca Online', 'Sinuca'], ['Truco Online', 'Cartas'], ['Pôquer Online', 'Cartas'], ['Dominó Online', ''],
   ['Tanques Online', '', capaTanque], ['Ratos em Guerra', '', capaRatos], ['Capivara Pistola', '', capaCapivara],
-  ['Ratos Psicopatas', '', capaPsicopatas], ['Galinhas Psicopatas', '', capaGalinhas], ['Cobras do Templo', '', capaCobras], ['Arqueiros do Céu', '', capaArqueiros], ['Batalha Naval', '', capaNaval], ['Forca', '', capaForca], ['Mini-golfe Tropical', '', capaGolfe], ['Última Carta', 'Cartas', capaUltima], ['Caçada de Patos', '', capaPatos], ['Futebol de Botão', 'Esportes', capaBotao],
+  ['Ratos Psicopatas', '', capaPsicopatas], ['Galinhas Psicopatas', '', capaGalinhas], ['Cobras do Templo', '', capaCobras], ['Arqueiros do Céu', '', capaArqueiros], ['Batalha Naval', '', capaNaval], ['Forca', '', capaForca], ['Mini-golfe Tropical', '', capaGolfe], ['Última Carta', 'Cartas', capaUltima], ['Caçada de Patos', '', capaPatos], ['Corrida de Jegues', '', capaJegues], ['Bazuca x Helicópteros', '', capaBazuca], ['Zombie Rush', '', capaZumbis], ['Futebol de Botão', 'Esportes', capaBotao],
   ['Sinuca Brasileira', 'Sinuca', capaSinucaBr], ['Bola 9', 'Sinuca', capaBola9], ['Bola 10', 'Sinuca', capaBola10], ['Snooker', 'Sinuca', capaSnooker],
   // ['Cassino Ao Vivo', 'Cassino'],
 ]
@@ -94,7 +100,7 @@ const todos = [
   // ['Blackjack', 'Cartas', img('m7.png')], ['Caça-Níquel', 'Slots', img('m8.png')], ['Roleta', 'Cassino', img('m9.png')],
   // ['Crash', 'Cassino', img('m10.png')], ['Mines', 'Cassino', img('m11.png')],
   ['Damas', '', capaDamas], ['Jogo da Velha', '', capaVelha], ['Cacheta', 'Cartas', capaCacheta],
-  ['Tanques', '', capaTanque], ['Ratos', '', capaRatos], ['Capivara', '', capaCapivara], ['Psicopatas', '', capaPsicopatas], ['Galinhas', '', capaGalinhas], ['Cobras', '', capaCobras], ['Arqueiros', '', capaArqueiros], ['Naval', '', capaNaval], ['Forca Online', '', capaForca], ['Mini-golfe', '', capaGolfe], ['Última', 'Cartas', capaUltima], ['Patos', '', capaPatos], ['Botão', 'Esportes', capaBotao],
+  ['Tanques', '', capaTanque], ['Ratos', '', capaRatos], ['Capivara', '', capaCapivara], ['Psicopatas', '', capaPsicopatas], ['Galinhas', '', capaGalinhas], ['Cobras', '', capaCobras], ['Arqueiros', '', capaArqueiros], ['Naval', '', capaNaval], ['Forca Online', '', capaForca], ['Mini-golfe', '', capaGolfe], ['Última', 'Cartas', capaUltima], ['Patos', '', capaPatos], ['Jegues', '', capaJegues], ['Bazuca', '', capaBazuca], ['Zumbis', '', capaZumbis], ['Botão', 'Esportes', capaBotao],
 ]
 /** Tile da vitrine -> jogo do servidor (server/jogos.js). O resto ainda não tem servidor. */
 const JOGO_DO_TILE = { 'Sinuca Online': 'sinuca', Sinuca: 'sinuca', 'Truco Online': 'truco', Truco: 'truco',
@@ -111,6 +117,9 @@ const JOGO_DO_TILE = { 'Sinuca Online': 'sinuca', Sinuca: 'sinuca', 'Truco Onlin
   'Mini-golfe Tropical': 'golfe', 'Mini-golfe': 'golfe',
   'Última Carta': 'ultima', 'Última': 'ultima',
   'Caçada de Patos': 'patos', Patos: 'patos',
+  'Corrida de Jegues': 'jegues', Jegues: 'jegues',
+  'Bazuca x Helicópteros': 'bazuca', Bazuca: 'bazuca',
+  'Zombie Rush': 'zumbis', Zumbis: 'zumbis',
   'Futebol de Botão': 'botao', Botão: 'botao',
   'Sinuca Brasileira': 'sinucabr', 'Bola 9': 'sinuca9', 'Bola 10': 'sinuca10', Snooker: 'snooker' }
 const reais = (v) => `R$ ${v.toFixed(2).replace('.', ',')}`
@@ -792,6 +801,9 @@ function Partida({ match }) {
     : match.game === 'golfe' ? <GolfeScreen />
     : match.game === 'ultima' ? <UltimaScreen />
     : match.game === 'patos' ? <PatosScreen />
+    : match.game === 'jegues' ? <JeguesScreen />
+    : match.game === 'bazuca' ? <BazucaScreen />
+    : match.game === 'zumbis' ? <ZumbisScreen />
     : match.game === 'botao' ? <BotaoScreen />
     : <GameScreen />
   // Avisos da mesa ("o adversário saiu do app…") também durante a partida

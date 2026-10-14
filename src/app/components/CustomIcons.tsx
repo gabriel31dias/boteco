@@ -59,9 +59,9 @@ export const CrownAvatar: React.FC<{ size?: number; className?: string }> = ({ s
     style={{
       width: size,
       height: size,
-      background: 'radial-gradient(circle at 40% 35%, #5b21b6 0%, #2e1065 70%, #1e1b4b 100%)',
-      boxShadow: '0 0 16px 2px rgba(168, 85, 247, 0.45), inset 0 0 10px rgba(192, 132, 252, 0.4)',
-      border: '2px solid rgba(192, 132, 252, 0.55)',
+      background: 'radial-gradient(circle at 40% 35%, #b80a12 0%, #5a0a0e 70%, #1a0507 100%)',
+      boxShadow: '0 0 16px 2px rgba(242, 20, 30, 0.4), inset 0 0 10px rgba(255, 58, 64, 0.35)',
+      border: '2px solid rgba(255, 58, 64, 0.6)',
     }}
   >
     <svg
@@ -511,7 +511,7 @@ export const AchievementBadge: React.FC<{
   );
 };
 
-/** Foto de perfil quando há; senão a coroa padrão. Mesma moldura roxa nos dois. */
+/** Foto de perfil quando há; senão a coroa padrão. Mesma moldura vermelha nos dois. */
 export const Avatar: React.FC<{ url?: string | null; size?: number; className?: string; alt?: string }> = ({
   url, size = 48, className = '', alt = '',
 }) => (url ? (
@@ -524,8 +524,8 @@ export const Avatar: React.FC<{ url?: string | null; size?: number; className?: 
     style={{
       width: size,
       height: size,
-      boxShadow: '0 0 16px 2px rgba(168, 85, 247, 0.45)',
-      border: '2px solid rgba(192, 132, 252, 0.55)',
+      boxShadow: '0 0 16px 2px rgba(242, 20, 30, 0.4)',
+      border: '2px solid rgba(255, 58, 64, 0.6)',
     }}
   />
 ) : <CrownAvatar size={size} className={className} />);

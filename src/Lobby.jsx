@@ -27,8 +27,10 @@ const MODOS = {
 }
 const base = (id) => id.replace(/-duplas$/, '')
 /** Jogos com cor (tanque): a escolhida fica guardada pra próxima vez. */
-const TOM_COR = { azul: '#3b8cff', vermelho: '#ff4646', verde: '#3ddc5a', amarelo: '#ffc53d', roxo: '#b86bff', rosa: '#ff6fc8', branco: '#f2efe6', preto: '#8a8a99', arcoiris: '#e86bff' }
-const NOME_COR = { azul: 'Azul', vermelho: 'Vermelho', verde: 'Verde', amarelo: 'Amarelo', roxo: 'Roxo', rosa: 'Rosa', branco: 'Branco', preto: 'Preto', arcoiris: 'Arco-íris' }
+const TOM_COR = { azul: '#3b8cff', vermelho: '#ff4646', verde: '#3ddc5a', amarelo: '#ffc53d', roxo: '#b86bff', rosa: '#ff6fc8', branco: '#f2efe6', preto: '#8a8a99', arcoiris: '#e86bff',
+  pepano: '#ff4b3a', costelinha: '#2f8bff', misere: '#2ecc40', relampago: '#ffb020', jerimum: '#b65cff' }
+const NOME_COR = { azul: 'Azul', vermelho: 'Vermelho', verde: 'Verde', amarelo: 'Amarelo', roxo: 'Roxo', rosa: 'Rosa', branco: 'Branco', preto: 'Preto', arcoiris: 'Arco-íris',
+  pepano: 'Pé de Pano', costelinha: 'Costelinha', misere: 'Miserê', relampago: 'Relâmpago', jerimum: 'Jerimum' }
 // figurinha de cada escolha, pra sala de espera: o rato parado / o tanque da cor
 const FIG = (() => {
   const g = { ...import.meta.glob('./assets/ratos/*-parado.webp', { eager: true, import: 'default' }),
@@ -37,8 +39,11 @@ const FIG = (() => {
     ...import.meta.glob('./assets/psicopatas/*-anda-1.webp', { eager: true, import: 'default' }),
     ...import.meta.glob('./assets/galinhas/*-anda-0.webp', { eager: true, import: 'default' }),
     ...import.meta.glob('./assets/cobras/*-cabeca-0.webp', { eager: true, import: 'default' }),
-    ...import.meta.glob('./assets/arqueiros/*-2.webp', { eager: true, import: 'default' }) }
-  const f = { ratos: {}, tanque: {}, capivara: {}, psicopatas: {}, galinhas: {}, cobras: {}, arqueiros: {} }
+    ...import.meta.glob('./assets/arqueiros/*-2.webp', { eager: true, import: 'default' }),
+    ...import.meta.glob('./assets/jegues/*-parado-0.webp', { eager: true, import: 'default' }),
+    ...import.meta.glob('./assets/bazuca/soldado-*-mira-0.webp', { eager: true, import: 'default' }),
+    ...import.meta.glob('./assets/zumbis/soldado-*-mira.webp', { eager: true, import: 'default' }) }
+  const f = { ratos: {}, tanque: {}, capivara: {}, psicopatas: {}, galinhas: {}, cobras: {}, arqueiros: {}, jegues: {}, bazuca: {}, zumbis: {} }
   const PSICO = { magrelo: 'azul', gordo: 'vermelho', bandana: 'verde', oculos: 'amarelo' }
   for (const [k, url] of Object.entries(g)) {
     const ps = /psicopatas\/(\w+)-anda-1/.exec(k)
@@ -49,6 +54,12 @@ const FIG = (() => {
     if (co) { f.cobras[co[1]] = url; continue }
     const aq = /arqueiros\/(azul|vermelho|verde|roxo)-2\./.exec(k)
     if (aq) { f.arqueiros[aq[1]] = url; continue }
+    const jg = /jegues\/(\w+)-parado-0/.exec(k)
+    if (jg) { f.jegues[jg[1]] = url; continue }
+    const bz = /bazuca\/soldado-(\w+)-mira-0/.exec(k)
+    if (bz) { f.bazuca[bz[1]] = url; continue }
+    const zr = /zumbis\/soldado-(\w+)-mira\./.exec(k)
+    if (zr) { f.zumbis[zr[1]] = url; continue }
     const m = /ratos\/(\w+)-parado|tanque\/tanque-(\w+)\.|capivara\/(\w+)-anda-0/.exec(k)
     if (m) f[m[1] ? 'ratos' : m[2] ? 'tanque' : 'capivara'][m[1] ?? m[2] ?? m[3]] = url
   }
@@ -224,7 +235,7 @@ export default function Lobby({ abrir, onClose }) {
 
   const titulo = start ? 'Oponente encontrado!'
     : convidado ? `${convidado} entrou`
-    : cores && mesa && !mesa.players.find((p) => p.id === profile.id)?.cor ? (jogo === 'capivara' ? 'Escolha sua capivara!' : jogo === 'galinhas' ? 'Escolha sua galinha!' : jogo === 'cobras' ? 'Escolha sua cobra!' : jogo === 'arqueiros' ? 'Escolha seu arqueiro!' : info?.nomesCores ? 'Escolha seu rato!' : 'Escolha seu tanque!')
+    : cores && mesa && !mesa.players.find((p) => p.id === profile.id)?.cor ? (jogo === 'capivara' ? 'Escolha sua capivara!' : jogo === 'galinhas' ? 'Escolha sua galinha!' : jogo === 'cobras' ? 'Escolha sua cobra!' : jogo === 'arqueiros' ? 'Escolha seu arqueiro!' : jogo === 'jegues' ? 'Escolha seu jegue!' : jogo === 'bazuca' || jogo === 'zumbis' ? 'Escolha seu soldado!' : info?.nomesCores ? 'Escolha seu rato!' : 'Escolha seu tanque!')
     : cores && mesa && mesa.players.length >= (mesa.minimo ?? 2) && mesa.players.some((p) => !p.cor) ? 'Esperando todos escolherem…'
     : mesa && !mesa.duplas && mesa.jogadores > 2 ? (abreEm !== null ? `Começa em ${abreEm}s` : 'Esperando jogadores…')
     : mesa && mesa.jogadores > 2 ? `Faltam ${mesa.jogadores - mesa.players.length} jogador${mesa.jogadores - mesa.players.length === 1 ? '' : 'es'}`
@@ -367,7 +378,7 @@ export default function Lobby({ abrir, onClose }) {
 
             {cores && mesa && !start && (
               <div className="lb-escolha">
-                <b>{jogo === 'capivara' ? 'Escolha sua capivara' : jogo === 'galinhas' ? 'Escolha sua galinha' : jogo === 'cobras' ? 'Escolha sua cobra' : jogo === 'arqueiros' ? 'Escolha seu arqueiro' : info?.nomesCores ? 'Escolha seu rato' : 'Escolha sua cor'}</b>
+                <b>{jogo === 'capivara' ? 'Escolha sua capivara' : jogo === 'galinhas' ? 'Escolha sua galinha' : jogo === 'cobras' ? 'Escolha sua cobra' : jogo === 'arqueiros' ? 'Escolha seu arqueiro' : jogo === 'jegues' ? 'Escolha seu jegue' : jogo === 'bazuca' || jogo === 'zumbis' ? 'Escolha seu soldado' : info?.nomesCores ? 'Escolha seu rato' : 'Escolha sua cor'}</b>
                 <div>
                   {cores.map((c) => {
                     const dono = mesa.players.find((p) => p.cor === c)
