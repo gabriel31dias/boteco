@@ -34,9 +34,11 @@ import * as forca from './jogos/forca.js';
 import * as golfe from './jogos/golfe.js';
 import * as ultima from './jogos/ultima.js';
 import * as patos from './jogos/patos.js';
+import * as hockey from './jogos/hockey.js';
 import * as botao from './jogos/botao.js';
 import * as jegues from './jogos/jegues.js';
 import * as bazuca from './jogos/bazuca.js';
+import * as castelos from './jogos/castelos.js';
 import * as zumbis from './jogos/zumbis.js';
 
 /** Quanto tempo o app pode ficar fora da tela, em partida, antes do W.O. */
@@ -67,7 +69,7 @@ const perfil = (u) => ({
 const brl = (centavos) => `R$ ${(centavos / 100).toFixed(2).replace('.', ',')}`;
 
 /** Cada processo serve um jogo só. O árbitro de tabuleiro fica aqui. */
-const ARBITROS = { velha, domino, truco, damas, 'truco-duplas': truco, 'domino-duplas': domino, poker, buraco, 'buraco-duplas': buraco, cacheta, tanque, ratos, capivara, psicopatas, galinhas, cobras, arqueiros, naval, forca, golfe, ultima, patos, botao, jegues, bazuca, zumbis };
+const ARBITROS = { velha, domino, truco, damas, 'truco-duplas': truco, 'domino-duplas': domino, poker, buraco, 'buraco-duplas': buraco, cacheta, tanque, ratos, capivara, psicopatas, galinhas, cobras, arqueiros, naval, forca, golfe, ultima, patos, botao, jegues, bazuca, castelos, zumbis, hockey };
 
 export function attach(io, jogoId = JOGO_PADRAO) {
   const jogo = jogoDe(jogoId);
@@ -239,6 +241,7 @@ export function attach(io, jogoId = JOGO_PADRAO) {
 
   /** `motivo`: 'saiu' (botão), 'desconectou' ou 'ausencia' (app fora da tela). */
   const sair = (socket, motivo = 'saiu') => {
+    if (process.env.DEBUG_MESA) console.log(`[dbg] sair u${socket.data.user?.id} ${motivo} sala=${socket.data.sala?.code}`);
     clearTimeout(socket.data.ausencia);
     socket.data.ausencia = null;
     const sala = socket.data.sala;
@@ -283,8 +286,11 @@ export function attach(io, jogoId = JOGO_PADRAO) {
       socket.emit('settled', { ...wo, desistiu: true, state: stateOf(socket.data.user.id) });
     }
     for (const p of sala.players) p.socket?.emit('left', i);
-    if (!emJogo && sala.players.length && MAX > 2) {
-      // Ainda esperando gente: a sala continua, só com uma vaga a mais.
+    if (!emJogo && sala.players.length) {
+      // Ainda esperando gente: a sala continua, só com uma vaga a mais. No 1×1
+      // também: fechar derrubava quem ficou sem avisar o lobby, que seguia
+      // "esperando" numa sala que não existia mais.
+      if (sala.type !== 'privada' && !rooms.get(filas.get(sala.type))) filas.set(sala.type, sala.code);
       if (sala.dono === socket) sala.dono = sala.players[0].socket;
       if (sala.players.length < MIN) pararEspera(sala);
       sala.proposta = false;
@@ -330,6 +336,7 @@ export function attach(io, jogoId = JOGO_PADRAO) {
     });
 
     on('join', (req = {}) => {
+      if (process.env.DEBUG_MESA) console.log(`[dbg] join u${socket.data.user?.id} ${JSON.stringify(req)} sala=${socket.data.sala?.code}`);
       if (socket.data.sala) return;
       const user = socket.data.user;
       const code = sanitize(req.code);
@@ -643,6 +650,7 @@ export function attach(io, jogoId = JOGO_PADRAO) {
     // troca até a partida começar; cor de outro jogador não pode.
     on('cor', (cor) => {
       const sala = socket.data.sala;
+      if (process.env.DEBUG_MESA) console.log(`[dbg] cor u${socket.data.user?.id} ${cor} sala=${sala?.code} ${JSON.stringify(sala?.players.map((p) => [p.user.id, p.cor, p.socket?.connected]))}`);
       if (!sala || sala.matchId || !jogo.cores?.includes(cor)) return;
       const eu = sala.players.find((p) => p.socket === socket);
       if (!eu || eu.cor === cor) return;

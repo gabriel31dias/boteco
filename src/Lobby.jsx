@@ -42,8 +42,9 @@ const FIG = (() => {
     ...import.meta.glob('./assets/arqueiros/*-2.webp', { eager: true, import: 'default' }),
     ...import.meta.glob('./assets/jegues/*-parado-0.webp', { eager: true, import: 'default' }),
     ...import.meta.glob('./assets/bazuca/soldado-*-mira-0.webp', { eager: true, import: 'default' }),
-    ...import.meta.glob('./assets/zumbis/soldado-*-mira.webp', { eager: true, import: 'default' }) }
-  const f = { ratos: {}, tanque: {}, capivara: {}, psicopatas: {}, galinhas: {}, cobras: {}, arqueiros: {}, jegues: {}, bazuca: {}, zumbis: {} }
+    ...import.meta.glob('./assets/zumbis/soldado-*-mira.webp', { eager: true, import: 'default' }),
+    ...import.meta.glob('./assets/hockey/taco-*.webp', { eager: true, import: 'default' }) }
+  const f = { ratos: {}, tanque: {}, capivara: {}, psicopatas: {}, galinhas: {}, cobras: {}, arqueiros: {}, jegues: {}, bazuca: {}, zumbis: {}, hockey: {} }
   const PSICO = { magrelo: 'azul', gordo: 'vermelho', bandana: 'verde', oculos: 'amarelo' }
   for (const [k, url] of Object.entries(g)) {
     const ps = /psicopatas\/(\w+)-anda-1/.exec(k)
@@ -60,6 +61,8 @@ const FIG = (() => {
     if (bz) { f.bazuca[bz[1]] = url; continue }
     const zr = /zumbis\/soldado-(\w+)-mira\./.exec(k)
     if (zr) { f.zumbis[zr[1]] = url; continue }
+    const hk = /hockey\/taco-(\w+)\./.exec(k)
+    if (hk) { f.hockey[hk[1]] = url; continue }
     const m = /ratos\/(\w+)-parado|tanque\/tanque-(\w+)\.|capivara\/(\w+)-anda-0/.exec(k)
     if (m) f[m[1] ? 'ratos' : m[2] ? 'tanque' : 'capivara'][m[1] ?? m[2] ?? m[3]] = url
   }
@@ -235,8 +238,10 @@ export default function Lobby({ abrir, onClose }) {
 
   const titulo = start ? 'Oponente encontrado!'
     : convidado ? `${convidado} entrou`
-    : cores && mesa && !mesa.players.find((p) => p.id === profile.id)?.cor ? (jogo === 'capivara' ? 'Escolha sua capivara!' : jogo === 'galinhas' ? 'Escolha sua galinha!' : jogo === 'cobras' ? 'Escolha sua cobra!' : jogo === 'arqueiros' ? 'Escolha seu arqueiro!' : jogo === 'jegues' ? 'Escolha seu jegue!' : jogo === 'bazuca' || jogo === 'zumbis' ? 'Escolha seu soldado!' : info?.nomesCores ? 'Escolha seu rato!' : 'Escolha seu tanque!')
+    : cores && mesa && !mesa.players.find((p) => p.id === profile.id)?.cor ? (jogo === 'capivara' ? 'Escolha sua capivara!' : jogo === 'galinhas' ? 'Escolha sua galinha!' : jogo === 'cobras' ? 'Escolha sua cobra!' : jogo === 'arqueiros' ? 'Escolha seu arqueiro!' : jogo === 'jegues' ? 'Escolha seu jegue!' : jogo === 'bazuca' || jogo === 'zumbis' ? 'Escolha seu soldado!' : jogo === 'hockey' ? 'Escolha seu taco!' : info?.nomesCores ? 'Escolha seu rato!' : 'Escolha seu tanque!')
     : cores && mesa && mesa.players.length >= (mesa.minimo ?? 2) && mesa.players.some((p) => !p.cor) ? 'Esperando todos escolherem…'
+    : mesa && mesa.jogadores === 2 && abreEm !== null ? `Começa em ${abreEm}s`
+    : mesa && mesa.jogadores === 2 && mesa.players.length === 2 ? 'Oponente na sala!'
     : mesa && !mesa.duplas && mesa.jogadores > 2 ? (abreEm !== null ? `Começa em ${abreEm}s` : 'Esperando jogadores…')
     : mesa && mesa.jogadores > 2 ? `Faltam ${mesa.jogadores - mesa.players.length} jogador${mesa.jogadores - mesa.players.length === 1 ? '' : 'es'}`
     : codigoSala ? 'Esperando o amigo…' : 'Procurando partida…'
@@ -371,14 +376,14 @@ export default function Lobby({ abrir, onClose }) {
                 <div className={`lb-vs-meio ${start ? 'ok' : ''}`}>{start ? '⚔️' : <i className="lb-spin" />}<b>VS</b></div>
                 <div>
                   {oponente?.avatar ? <Avatar url={oponente.avatar} size={64} /> : <span className="lb-anon">{start ? '⚡' : '?'}</span>}
-                  <span>{start ? start.players.filter((_, i) => i % 2 !== start.seat % 2).map((p) => p.name).join(' e ') : convidado ?? 'Buscando…'}</span>
+                  <span>{start ? start.players.filter((_, i) => i % 2 !== start.seat % 2).map((p) => p.name).join(' e ') : convidado ?? mesa?.players.find((p) => p.id !== profile.id)?.name ?? 'Buscando…'}</span>
                 </div>
               </div>
             )}
 
             {cores && mesa && !start && (
               <div className="lb-escolha">
-                <b>{jogo === 'capivara' ? 'Escolha sua capivara' : jogo === 'galinhas' ? 'Escolha sua galinha' : jogo === 'cobras' ? 'Escolha sua cobra' : jogo === 'arqueiros' ? 'Escolha seu arqueiro' : jogo === 'jegues' ? 'Escolha seu jegue' : jogo === 'bazuca' || jogo === 'zumbis' ? 'Escolha seu soldado' : info?.nomesCores ? 'Escolha seu rato' : 'Escolha sua cor'}</b>
+                <b>{jogo === 'capivara' ? 'Escolha sua capivara' : jogo === 'galinhas' ? 'Escolha sua galinha' : jogo === 'cobras' ? 'Escolha sua cobra' : jogo === 'arqueiros' ? 'Escolha seu arqueiro' : jogo === 'jegues' ? 'Escolha seu jegue' : jogo === 'bazuca' || jogo === 'zumbis' ? 'Escolha seu soldado' : jogo === 'hockey' ? 'Escolha seu taco' : info?.nomesCores ? 'Escolha seu rato' : 'Escolha sua cor'}</b>
                 <div>
                   {cores.map((c) => {
                     const dono = mesa.players.find((p) => p.cor === c)

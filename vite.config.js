@@ -14,7 +14,9 @@ const proxy = {
   '/ws/botao': { target: alvo(3030), ws: true },
   '/ws/jegues': { target: alvo(3031), ws: true },
   '/ws/bazuca': { target: alvo(3032), ws: true },
+  '/ws/castelos': { target: alvo(3035), ws: true },
   '/ws/zumbis': { target: alvo(3033), ws: true },
+  '/ws/hockey': { target: alvo(3034), ws: true },
   '/ws/velha': { target: alvo(3002), ws: true },
   // Antes de /ws/domino e /ws/truco: o proxy casa por prefixo, na ordem das chaves.
   '/ws/domino-duplas': { target: alvo(3007), ws: true },

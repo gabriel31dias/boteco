@@ -10,7 +10,7 @@ const TODAS = import.meta.glob('../assets/*/*.{webp,png,jpg,jpeg}', { eager: tru
 const PASTAS: Record<string, string[]> = {
   sinuca: ['sinuca'], sinuca9: ['sinuca'], sinuca10: ['sinuca'], sinucabr: ['sinuca'], snooker: ['sinuca'], truco: ['truco'], poker: ['poker'], buraco: ['buraco'], cacheta: ['cacheta', 'buraco'],
   damas: ['damas'], tanque: ['tanque'], ratos: ['ratos'], capivara: ['capivara'], psicopatas: ['psicopatas'],
-  galinhas: ['galinhas', 'psicopatas'], cobras: ['cobras'], arqueiros: ['arqueiros'], naval: ['naval'], forca: ['forca'], golfe: ['golfe'], ultima: ['ultima'], patos: ['patos'], botao: ['botao'], jegues: ['jegues'], bazuca: ['bazuca'], zumbis: ['zumbis'],
+  galinhas: ['galinhas', 'psicopatas'], cobras: ['cobras'], arqueiros: ['arqueiros'], naval: ['naval'], forca: ['forca'], golfe: ['golfe'], ultima: ['ultima'], patos: ['patos'], botao: ['botao'], jegues: ['jegues'], bazuca: ['bazuca'], castelos: ['castelos'], zumbis: ['zumbis'], hockey: ['hockey'],
 };
 
 export const baseDoJogo = (jogo: string) => jogo.replace(/-duplas$/, '');

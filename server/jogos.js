@@ -294,6 +294,14 @@ export const JOGOS = {
     cores: ['azul', 'vermelho', 'amarelo', 'roxo', 'verde'],
     nomesCores: { azul: 'Recruta Azul', vermelho: 'Cabo Vermelho', amarelo: 'Sargento Amarelo', roxo: 'Tenente Roxo', verde: 'Capitão Verde' },
   },
+  // Castelos 1×1 por turnos (ver server/jogos/castelos.js): fura a fachada e elimina os heróis do outro.
+  castelos: {
+    id: 'castelos',
+    nome: 'Castelos em Guerra',
+    subtitulo: '1 contra 1 · por turnos · derrube os heróis do castelo rival',
+    porta: 3035,
+    arbitro: 'servidor',
+  },
   // Zumbis de plataforma, tempo real (ver server/jogos/zumbis.js): quem fizer mais pontos em 90s leva.
   zumbis: {
     id: 'zumbis',
@@ -306,6 +314,16 @@ export const JOGOS = {
     esperaMs: 10_000,
     cores: ['azul', 'vermelho', 'amarelo', 'verde'],
     nomesCores: { azul: 'Soldado Azul', vermelho: 'Soldado Vermelho', amarelo: 'Soldado Amarelo', verde: 'Soldado Verde' },
+  },
+  // Air hockey neon 1 contra 1, tempo real (ver server/jogos/hockey.js): 7 gols ou 3 minutos.
+  hockey: {
+    id: 'hockey',
+    nome: 'Air Hockey Neon',
+    subtitulo: '1 contra 1 · 7 gols ou 3 minutos · empate é gol de ouro',
+    porta: 3034,
+    arbitro: 'servidor',
+    cores: ['vermelho', 'azul', 'verde', 'amarelo'],
+    nomesCores: { vermelho: 'Vermelho · neon', azul: 'Azul · neon', verde: 'Verde · neon', amarelo: 'Amarelo · neon' },
   },
   // Futebol de botão FLA × VAS, 1 contra 1, por turnos (ver server/jogos/botao.js).
   botao: {
